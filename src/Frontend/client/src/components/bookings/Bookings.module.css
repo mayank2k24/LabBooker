@@ -1,0 +1,147 @@
+.bookings {
+    margin-top: 2rem;
+  }
+  
+  .bookingItem {
+    background: #fff;
+    padding: 1rem;
+    border-radius: 5px;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .bookingItem h3 {
+    margin-bottom: 0.5rem;
+  }
+  
+  .bookingItem p {
+    margin-bottom: 0.3rem;
+  }
+  
+  .deleteBtn {
+    float: right;
+    background: #dc3545;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  .deleteBtn:hover {
+    background: #c82333;
+  }
+  
+  .is-invalid {
+    border-color: #dc3545;
+  }
+  
+  .invalid-feedback {
+    color: #dc3545;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+  }
+  
+  .searchInput {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1rem;
+  }
+  
+  .pagination button {
+    background: #007bff;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    margin: 0 0.5rem;
+    border-radius: 3px;
+    cursor: pointer;
+  }
+  
+  .pagination button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }
+  
+  .pagination span {
+    margin: 0 1rem;
+  }
+
+  .viewToggle {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 1rem;
+  }
+  
+  .viewToggle button {
+    background: #f4f4f4;
+    border: none;
+    padding: 0.5rem 1rem;
+    margin: 0 0.5rem;
+    cursor: pointer;
+    border-radius: 3px;
+  }
+  
+  .viewToggle button.active {
+    background: #007bff;
+    color: #fff;
+  }
+  .bookingItem {
+    /* existing styles */
+    position: relative;
+    padding-bottom: 40px; /* Add space for buttons */
+  }
+  
+  .bookingActions {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+  }
+  
+  .editBtn, .deleteBtn {
+    margin-left: 10px;
+    padding: 5px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .editBtn {
+    background-color: #4CAF50;
+    color: white;
+  }
+  
+  .deleteBtn {
+    background-color: #f44336;
+    color: white;
+  }
+
+  .editBookingOverlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  .editBookingModal {
+    background: #fff;
+    padding: 1rem;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    width: 80%;
+    max-width: 500px;
+  }
