@@ -2,9 +2,9 @@
 const express = require('express');
 const router = express.Router();
 const Resource = require('../models/Resource');
-const auth = require('../middleware/auth');
+const {verifyToken} = require('../middleware/auth');
 
-router.get('/', auth, async (req, res) => {
+router.get('/', verifyToken, async (req, res) => {
   try {
     const resources = await Resource.find();
     res.json(resources);

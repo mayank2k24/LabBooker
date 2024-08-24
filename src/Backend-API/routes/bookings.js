@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
+const {verifyToken,generateToken} = require('../middleware/auth');
 const Booking = require('../models/Booking');
 const { checkAvailability } = require('../utils/bookingHelpers');
 const { compareSync } = require('bcryptjs');
 
 // POST /api/bookings
-router.post('/', auth, async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
   console.log('Received booking request. Body:', JSON.stringify(req.body, null, 2));
   try {
     const { resourceId, resource , start, end } = req.body;
@@ -65,7 +65,7 @@ router.post('/', auth, async (req, res) => {
 });
 
 // Get bookings with pagination and search
-router.get('/', auth, async (req, res) => {
+router.get('/', verifyToken, async (req, res) => {
   try {
     const page = parseInt(req.query.page) || 1;
     const limit = parseInt(req.query.limit) || 10;
@@ -107,7 +107,7 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Get all bookings for a user
-router.get('/user', auth, async (req, res) => {
+router.get('/user', verifyToken, async (req, res) => {
   try {
     const bookings = await Booking.find({ user: req.user.id }).sort({ start: 1 });
     res.json(bookings);
@@ -118,7 +118,7 @@ router.get('/user', auth, async (req, res) => {
 });
 
 // get the booking history
-router.get('/history', auth, async (req, res) => {
+router.get('/history', verifyToken, async (req, res) => {
   try {
     const bookings = await Booking.find({ user: req.user.id })
       .sort({ start: -1 })
@@ -139,7 +139,7 @@ router.get('/history', auth, async (req, res) => {
 });
 
 // Delete a booking
-router.delete('/:id', auth, async (req, res) => {
+router.delete('/:id', verifyToken, async (req, res) => {
   try {
     let booking = await Booking.findById(req.params.id);
 
@@ -160,7 +160,7 @@ router.delete('/:id', auth, async (req, res) => {
 });
 
 // Get all bookings for calendar view
-router.get('/all', auth, async (req, res) => {
+router.get('/all', verifyToken, async (req, res) => {
   try {
     const bookings = await Booking.find({ user: req.user.id });
     res.json(bookings);
@@ -171,7 +171,7 @@ router.get('/all', auth, async (req, res) => {
 });
 
 // PUT /api/bookings/:id
-router.put('/:id', auth, async (req, res) => {
+router.put('/:id', verifyToken, async (req, res) => {
   try {
     const { resource, start,end } = req.body;
     const booking = await Booking.findById(req.params.id);
@@ -204,7 +204,7 @@ router.put('/:id', auth, async (req, res) => {
 });
 
 // GET /api/bookings/stats
-router.get('/stats', auth, async (req, res) => {
+router.get('/stats', verifyToken, async (req, res) => {
   try {
     const now = new Date();
 
