@@ -10,6 +10,7 @@ import BookingCalendar from "./BookingCalendar";
 import EditBooking from "./EditBooking";
 import LabLayout from "../layout/LabLayout";
 import SaveraSchoolBooking from './SaveraSchoolBooking';
+import UndoFooter from '../utils/undoFooter';
 
 axios.interceptors.response.use(
   (response) => {
@@ -59,6 +60,8 @@ const Bookings = () => {
   const [showLabLayout, setShowLabLayout] = useState(false);
   const [bookingHistory, setBookingHistory] = useState([]);
   const [bookingType,setBookingType] = useState('regular');
+  const [showUndoFooter, setShowUndoFooter] = useState(false);
+  const [lastAction, setLastAction] = useState(null);
 
   useEffect(() => {
     if (token) {
@@ -102,38 +105,22 @@ const Bookings = () => {
     }
   };
 
-  // const handleBooking = async () => {
-  //   if (!selectedSystem || !bookingDate) {
-  //     setAlert("Please select a system and date", "danger");
-  //     return;
-  //   }
+  const handleBooking = (booking) => {
+    setLastAction({type: 'booking', data: booking});
+    setShowUndoFooter(true);
+  };
 
-  //   try {
-  //     const startDate = new Date(bookingDate);
-  //     const endDate = new Date(startDate.getTime() + 2 * 60 * 60 * 1000); // 1 hour later
+  const handleDeletion = (bookingId) => {
+    setLastAction({ type: 'deletion', data: bookingId });
+    setShowUndoFooter(true);
+  };
 
-  //     const bookingData = {
-  //       resourceId: selectedSystem.id,
-  //       resource: selectedSystem.name,
-  //       start: startDate.toISOString(),
-  //       end: endDate.toISOString(),
-  //     };
-
-  //     console.log("Sending booking data:", JSON.stringify(bookingData, null, 2));
-
-  //     const res = await axios.post("/api/bookings", bookingData);
-
-  //     console.log("Booking response:", res.data);
-
-  //     setAlert("Booking successful", "success");
-  //     fetchBookingHistory();
-  //     setSelectedSystem(null);
-  //   } catch (err) {
-  //     console.error('Error in handleBooking:', err);
-  //     console.error('Error response:', err.response?.data);
-  //     setAlert(err.response?.data?.error || 'Booking failed. Please try again.', 'danger');
-  //   }
-  // };
+  const handleUndo = () => {
+    if (lastAction.type === 'booking') {
+    } else if (lastAction.type === 'deletion') {
+    }
+    setShowUndoFooter(false);
+  };
 
   const toggleLabLayout = () => {
     setShowLabLayout((prevState) => !prevState);
@@ -450,6 +437,12 @@ const Bookings = () => {
           <p>No booking history available.</p>
         )}
       </div>
+      {showUndoFooter && (
+        <UndoFooter 
+          message="Action performed. Do you want to undo?" 
+          onUndo={handleUndo}
+        />
+      )}
     </div>
   );
 };

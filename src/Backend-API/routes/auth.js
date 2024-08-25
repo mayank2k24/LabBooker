@@ -21,7 +21,7 @@ router.get('/', verifyToken , async (req, res) => {
 // @route   POST api/users
 // @desc    Register user
 // @access  Public
-router.post('/', async (req, res) => {
+router.post('/',generateToken ,async (req, res) => {
   const { name, email, password } = req.body;
 
   try {
@@ -42,21 +42,8 @@ router.post('/', async (req, res) => {
 
     await user.save();
 
-    const payload = {
-      user: {
-        id: user.id
-      }
-    };
-
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      { expiresIn: '1h'},
-      (err, token) => {
-        if (err) throw err;
-        res.json({ token });
-      }
-    );
+    const token = generateToken(user);
+    res.json({ token });
   } catch (err) {
     console.error(err.message);
     if (err.name === 'ValidationError') {
@@ -93,9 +80,14 @@ router.post('/login', async (req, res) => {
 router.post('/refresh-token', verifyToken, async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ msg: 'User not found' });
+    }
     const payload = {
       user: {
-        id: user.id
+        id: user._id,
+        username: user.name,
+        role: user.role
       }
     };
 

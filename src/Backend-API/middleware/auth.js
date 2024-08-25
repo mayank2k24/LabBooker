@@ -2,7 +2,7 @@ const jwt = require('jsonwebtoken');
 
 const verifyToken= (req, res, next) => {
   // Get token from header
-  const token = req.header('Authorization')?.replace('Bearer ', '');
+   const token = req.header('Authorization')?.replace('Bearer ', '');
 
   // Check if not token
   if (!token) {
@@ -19,8 +19,14 @@ const verifyToken= (req, res, next) => {
 };
 
 const generateToken = (user) => {
+  const payload = {
+    user: {
+      id: user._id,
+      role: user.role
+    }
+  };
   return jwt.sign(
-    { id: user._id, username: user.username, role: user.role },
+    payload,
     process.env.JWT_SECRET,
     { expiresIn: '1h' }
   );

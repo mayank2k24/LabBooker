@@ -17,10 +17,11 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const loadUser = async () => {
+    const token = localStorage.getItem('token');
+    
     try {
-      const token = localStorage.getItem('token');
       if (token) {
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        axios.defaults.headers.common['x-auth-token'] = token;
         const res = await axios.get('/api/auth');
         if (res.data) {
           setUser(res.data);

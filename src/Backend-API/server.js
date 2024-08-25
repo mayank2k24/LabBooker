@@ -6,7 +6,6 @@ const axios = require('axios');
 const { scheduleBookingUpdates } = require('./utils/scheduleTasks');
 const logoutTimer = require('./middleware/logoutTimer');
 require('dotenv').config();
-require('newrelic');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
