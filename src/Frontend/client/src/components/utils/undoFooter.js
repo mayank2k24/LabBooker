@@ -1,24 +1,31 @@
-import React ,{ useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
+import styles from './UndoFooter.module.css';
 
-function UndoFooter({message,onUndo,duration=3000}) {
-    const [visible,setVisible] = useState(true);
+const UndoFooter = ({ message, onUndo, onClose, duration = 5000 }) => {
+  const [timeLeft, setTimeLeft] = useState(duration / 1000);
 
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setVisible(false);
-        }, duration);
+  useEffect(() => {
+    if (timeLeft <= 0) {
+      onClose();
+      return;
+    }
 
-        return () => clearTimeout(timer);
-    }, [duration]);
+    const timer = setInterval(() => {
+      setTimeLeft(prevTime => prevTime - 1);
+    }, 1000);
 
-    if(!visible) return null;
+    return () => clearInterval(timer);
+  }, [timeLeft, onClose]);
 
-    return(
-        <div className="undo-footer">
-            {message}
-            <button onClick={onUndo}>Undo</button>
-        </div>
-    );
-}
+  return (
+    <div className={styles.undoFooter}>
+      <p className={styles.message}>{message}</p>
+      <div className={styles.countdownWrapper}>
+        <span className={styles.countdown}>{timeLeft}</span>
+        <button className={styles.undoButton} onClick={() => onUndo(true)}>Undo</button>
+      </div>
+    </div>
+  );
+};
 
 export default UndoFooter;

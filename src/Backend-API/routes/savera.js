@@ -1,26 +1,41 @@
-// In src/Backend-API/server.js or a separate route file
-
 const express = require('express');
 const router = express.Router();
+const { body, validationResult } = require('express-validator');
 const SaveraBooking = require('../models/SaveraBooking');
 
-router.post('/api/savera-school/bookings', async (req, res) => {
+router.post('/bookings', [
+  body('date').isISO8601().toDate(),
+  body('startTime').matches(/^([01]\d|2[0-3]):([0-5]\d)$/),
+  body('endTime').matches(/^([01]\d|2[0-3]):([0-5]\d)$/),
+  body('seat').notEmpty(),
+  body('classroom').notEmpty()
+], async (req, res) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(400).json({ errors: errors.array() });
+  }
   try {
-    const { date, startTime, endTime, subject } = req.body;
-    const newBooking = new SaveraBooking({ date, startTime, endTime, subject });
+    const { date, startTime, endTime, seat, classroom } = req.body;
+    const newBooking = new SaveraBooking({ date, startTime, endTime, seat, classroom });
     const savedBooking = await newBooking.save();
     res.status(201).json(savedBooking);
   } catch (error) {
-    res.status(400).json({ message: error.message });
+    console.error('Error creating booking:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 
-router.get('/api/savera-school/bookings', async (req, res) => {
+router.get('/bookings', async (req, res) => {
   try {
-    const bookings = await SaveraBooking.find();
+    const { classroom, date } = req.query;
+    const bookings = await SaveraBooking.find({ 
+      classroom,
+      date: new Date(date)
+    });
     res.json(bookings);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error fetching bookings:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 });
 

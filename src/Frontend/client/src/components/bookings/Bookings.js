@@ -10,14 +10,15 @@ import BookingCalendar from "./BookingCalendar";
 import EditBooking from "./EditBooking";
 import LabLayout from "../layout/LabLayout";
 import SaveraSchoolBooking from './SaveraSchoolBooking';
-import UndoFooter from '../utils/undoFooter';
+import UndoFooter from '../utils/UndoFooter';
+import { createBooking } from '../bookings/bookingConflict';
+import HelpIcon from '../HelpIcon.js'
 
 axios.interceptors.response.use(
   (response) => {
     const newToken = response.headers['x-new-token'];
     if (newToken) {
       localStorage.setItem('token', newToken);
-      // Update your auth context or state management here
     }
     return response;
   },
@@ -26,7 +27,6 @@ axios.interceptors.response.use(
   }
 );
 
-// Set up axios interceptor for authentication
 axios.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem("token");
@@ -40,7 +40,27 @@ axios.interceptors.request.use(
   }
 );
 
-const Bookings = () => {
+const CreateBooking = () => {
+  const [bookingData, setBookingData] = useState({
+    resourceId: '',
+    startTime: '',
+    endTime: ''
+  });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const result = await createBooking(bookingData);
+      console.log('Booking created:', result);
+    } catch (error) {
+      console.error('Error creating booking:', error);
+    }
+  };
+
+  return null; // Component rendering logic not provided in the original code
+};
+
+export default function Bookings() {
   const [bookings, setBookings] = useState([]);
   const [viewMode, setViewMode] = useState("list");
   const [formData, setFormData] = useState({
@@ -59,9 +79,10 @@ const Bookings = () => {
   const [resources, setResources] = useState([]);
   const [showLabLayout, setShowLabLayout] = useState(false);
   const [bookingHistory, setBookingHistory] = useState([]);
-  const [bookingType,setBookingType] = useState('regular');
+  const [bookingType, setBookingType] = useState('regular');
   const [showUndoFooter, setShowUndoFooter] = useState(false);
   const [lastAction, setLastAction] = useState(null);
+  const [undoAction, setUndoAction] = useState(null);
 
   useEffect(() => {
     if (token) {
@@ -92,7 +113,6 @@ const Bookings = () => {
     }
   };
 
-
   const fetchResourcesForDate = async (date) => {
     try {
       const res = await axios.get(
@@ -106,20 +126,54 @@ const Bookings = () => {
   };
 
   const handleBooking = (booking) => {
-    setLastAction({type: 'booking', data: booking});
+    setLastAction({type: 'create', data: booking});
     setShowUndoFooter(true);
+    console.log("undo footer show now", {showUndoFooter: true, undoAction: {type: 'create', data: booking}});
   };
 
   const handleDeletion = (bookingId) => {
-    setLastAction({ type: 'deletion', data: bookingId });
+    const bookingToDelete = bookings.find(b => b._id === bookingId);
+    setUndoAction({ type: 'delete', data: bookingToDelete });
     setShowUndoFooter(true);
+    console.log("Undo footer should show now", {showUndoFooter: true, undoAction: { type: 'delete', data: bookingToDelete }});
+    deleteBooking(bookingId);
   };
 
-  const handleUndo = () => {
-    if (lastAction.type === 'booking') {
-    } else if (lastAction.type === 'deletion') {
+  const handleUndo = async() => {
+    if (!undoAction) return;
+
+  try {
+    switch (undoAction.type) {
+      case 'create':
+        await deleteBooking(undoAction.data._id);
+        setAlert('Booking creation undone', 'success');
+        break;
+      case 'delete':
+        await axios.post('/api/bookings', undoAction.data);
+        setAlert('Booking deletion undone', 'success');
+        break;
+      case 'update':
+        await axios.put(`/api/bookings/${undoAction.data.old._id}`, undoAction.data.old);
+        setAlert('Booking update undone', 'success');
+        break;
+      default:
+        throw new Error('Invalid undo action type');
     }
+    getBookings();
+  } catch (error) {
+    console.error('Error undoing action:', error);
+    setAlert('Failed to undo action', 'danger');
+  } finally {
+    setUndoAction(null);
     setShowUndoFooter(false);
+    console.log("Undo footer should hide now", {showUndoFooter: false, undoAction: null});
+  }
+  closeUndoFooter();
+  };
+
+  const closeUndoFooter = () => {
+    setShowUndoFooter(false);
+    setUndoAction(null);
   };
 
   const toggleLabLayout = () => {
@@ -133,13 +187,16 @@ const Bookings = () => {
 
   const handleUpdate = async (updatedBooking) => {
     try {
+      const oldBooking = bookings.find(b => b._id === updatedBooking._id);
       const res = await axios.put(`/api/bookings/${updatedBooking._id}`, updatedBooking);
       setBookings(bookings.map(booking => 
         booking._id === res.data._id ? res.data : booking
       ));
       setEditingBooking(null);
       setAlert("Booking updated successfully", "success");
-      getBookings(); // Refresh the bookings list
+      setUndoAction({ type: 'update', data: { old: oldBooking, new: res.data } });
+      setShowUndoFooter(true);
+      getBookings();
     } catch (err) {
       setAlert(err.response?.data?.msg || "Failed to update booking", "danger");
     }
@@ -217,21 +274,24 @@ const Bookings = () => {
         },
       };
       const body = JSON.stringify({
-        start: startTime.toISOString(),
-        end: endTime.toISOString(),
+        start: startTime?.toISOString(),
+        end: endTime?.toISOString(),
         resource: system,
         resourceId: system,
         description: "",
       });
-      await axios.post("/api/bookings", body, config);
+      const res = await axios.post("/api/bookings", body, config);
       getBookings();
       setFormData({ system: "", startTime: null, endTime: null });
       setAlert("Booking created successfully", "success");
+      handleBooking(res.data);
     } catch (err) {
-      if (err.name === "ValidationError") {
+      if (err instanceof Yup.ValidationError) {
         const validationErrors = {};
         err.inner.forEach((error) => {
-          validationErrors[error.path] = error.message;
+          if (error.path) {
+            validationErrors[error.path] = error.message;
+          }
         });
         setErrors(validationErrors);
       } else {
@@ -251,18 +311,19 @@ const Bookings = () => {
 
   const deleteBooking = async (id) => {
     try {
-      const res = await axios.delete(`/api/bookings/${id}`);
+      await axios.delete(`/api/bookings/${id}`);
+      handleDeletion(id);
       getBookings();
       setAlert("Booking deleted successfully", "success");
     } catch (err) {
       console.error("Error deleting booking:", err.response?.data || err);
-    let errorMessage = "Failed to delete booking.";
-    if (err.response && err.response.status === 400) {
-      errorMessage = err.response.data.msg || "Invalid date range. Please select a valid slot.";
-    } else {
-      errorMessage = err.response?.data?.msg || err.message;
-    }
-    setAlert(errorMessage, "danger");
+      let errorMessage = "Failed to delete booking.";
+      if (err.response && err.response.status === 400) {
+        errorMessage = err.response.data.msg || "Invalid date range. Please select a valid slot.";
+      } else {
+        errorMessage = err.response?.data?.msg || err.message;
+      }
+      setAlert(errorMessage, "danger");
     }
   };
 
@@ -276,24 +337,24 @@ const Bookings = () => {
       </select>
       
       {bookingType === 'regular' ? (
-  editingBooking ? (
-    <EditBooking
-      booking={editingBooking}
-      onClose={() => setEditingBooking(null)}
-      onUpdate={handleUpdate}
-    />
-  ) : null
-) : (
-  <SaveraSchoolBooking />
-)}
-      <form onSubmit={(e) => onSubmit(e)}>
+        editingBooking ? (
+          <EditBooking
+            booking={editingBooking}
+            onClose={() => setEditingBooking(null)}
+            onUpdate={handleUpdate}
+          />
+        ) : null
+      ) : (
+        <SaveraSchoolBooking />
+      )}
+      <form onSubmit={onSubmit}>
         <div className="form-group">
           <input
             type="text"
             placeholder="System"
             name="system"
             value={system}
-            onChange={(e) => onChange(e)}
+            onChange={onChange}
             className={errors.system ? "is-invalid" : ""}
           />
           {errors.system && (
@@ -303,7 +364,9 @@ const Bookings = () => {
         <div className="form-group">
           <DatePicker
             selected={startTime}
-            onChange={(date) => onDateChange(date, "startTime")}
+            onChange={(date) =>{ onDateChange(date, "startTime");
+            fetchResourcesForDate(date);
+            }}
             showTimeSelect
             dateFormat="MMMM d, yyyy h:mm aa"
             placeholderText="Start Time"
@@ -403,6 +466,7 @@ const Bookings = () => {
           {editingBooking && (
             <EditBooking
               booking={editingBooking}
+              
               onClose={() => setEditingBooking(null)}
               onUpdate={handleUpdate}
             />
@@ -439,12 +503,13 @@ const Bookings = () => {
       </div>
       {showUndoFooter && (
         <UndoFooter 
-          message="Action performed. Do you want to undo?" 
-          onUndo={handleUndo}
+        message={`${undoAction.type.charAt(0).toUpperCase() + undoAction.type.slice(1)} action performed. Undo?`}
+    onUndo={handleUndo}
+    onClose={closeUndoFooter}
+    duration={5000}
         />
       )}
+      <HelpIcon />
     </div>
   );
-};
-
-export default Bookings;
+}

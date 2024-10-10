@@ -1,10 +1,7 @@
 const jwt = require('jsonwebtoken');
 
 const verifyToken= (req, res, next) => {
-  // Get token from header
    const token = req.header('Authorization')?.replace('Bearer ', '');
-
-  // Check if not token
   if (!token) {
     return res.status(401).json({ msg: 'No token, authorization denied' });
   }
@@ -22,14 +19,15 @@ const generateToken = (user) => {
   const payload = {
     user: {
       id: user._id,
-      role: user.role
+      isAdmin: user.isAdmin || false
     }
   };
   return jwt.sign(
     payload,
     process.env.JWT_SECRET,
-    { expiresIn: '1h' }
+    { expiresIn: '2h' }
   );
 };
+
 
 module.exports = { verifyToken, generateToken };

@@ -1,56 +1,94 @@
-.systemGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-    gap: 10px;
-    margin-top: 20px;
-  }
-  
-  .systemSeat {
-    padding: 10px;
-    text-align: center;
-    border: 1px solid #ccc;
-    cursor: pointer;
-  }
-  
-  .systemSeat.booked {
-    background-color: #f44336;
-    color: white;
-    cursor: not-allowed;
-  }
-  
-  .systemSeat.selected {
-    background-color: #4CAF50;
-    color: white;
-  }
+.visualBooking {
+  padding: 20px;
+}
 
-  .computer[data-tooltip]:hover::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    background: #333;
-    color: white;
-    padding: 5px;
-    border-radius: 3px;
-    z-index: 1;
-  }
+.roomLayout {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: 20px auto;
+  border: 2px solid #333;
+  padding: 20px;
+  display: grid;
+  gap: 10px;
+}
 
-  .error {
-    color: red;
-    margin-top: 10px;
-  }
-  
-  select {
-    margin-bottom: 10px;
-  }
-  
-  button {
-    margin-top: 10px;
-    padding: 10px;
-    background-color: #4CAF50;
-    color: white;
-    border: none;
-    cursor: pointer;
-  }
-  
-  button:hover {
-    background-color: #45a049;
-  }
+.door {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+}
+
+.door.top { top: -20px; left: 50%; transform: translateX(-50%); }
+.door.bottom { bottom: -20px; left: 50%; transform: translateX(-50%); }
+.door.left { top: 50%; left: -20px; transform: translateY(-50%); }
+.door.right { top: 50%; right: -20px; transform: translateY(-50%); }
+
+.teacherDesk {
+  position: absolute;
+  width: 60px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 24px;
+}
+
+.teacherDesk.top { top: 10px; left: 50%; transform: translateX(-50%); }
+.teacherDesk.bottom { bottom: 10px; left: 50%; transform: translateX(-50%); }
+.teacherDesk.left { top: 50%; left: 10px; transform: translateY(-50%); }
+.teacherDesk.right { top: 50%; right: 10px; transform: translateY(-50%); }
+
+.seatsContainer {
+  display: grid;
+  gap: 10px;
+}
+
+.seat {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid #ccc;
+  cursor: pointer;
+  position: relative;
+}
+
+.seat.booked { background-color: #ffcccc; }
+.seat.selected { background-color: #ccffcc; }
+.seat.current { background-color: #ccccff; }
+
+.computerIcon {
+  font-size: 20px;
+}
+
+.table {
+  background-color: #f0f0f0;
+  border: 1px solid #999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.tableIcon {
+  font-size: 24px;
+}
+
+.tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: white;
+  padding: 5px;
+  border-radius: 3px;
+  font-size: 12px;
+  white-space: nowrap;
+  z-index: 10;
+}

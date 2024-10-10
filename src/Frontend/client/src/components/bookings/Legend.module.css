@@ -1,0 +1,23 @@
+
+.legend {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 20px;
+  }
+  
+  .legendItem {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+  
+  .legendColor {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+  }
+  
+  .available { background-color: #4CAF50; }
+  .booked { background-color: #f44336; }
+  .selected { background-color: #2196F3; }

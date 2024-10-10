@@ -4,7 +4,7 @@ import { AuthContext } from '../../context/AuthContext';
 import styles from './Navbar.module.css';
 
 const Navbar = () => {
-  const { isAuthenticated, logout } = useContext(AuthContext);
+  const { isAuthenticated,isAdmin, logout } = useContext(AuthContext);
 
   const onLogout = () => {
     logout();
@@ -13,6 +13,7 @@ const Navbar = () => {
   const authLinks = (
     <>
       <li><Link to="/bookings">Bookings</Link></li>
+      {isAuthenticated && isAdmin && (<li><Link to="/admin">Admin Dashboard</Link></li>)}
       <li><a onClick={onLogout} href="#!">Logout</a></li>
     </>
   );

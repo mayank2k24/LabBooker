@@ -1,0 +1,10 @@
+
+.calendarContainer {
+    width: 300px;
+  }
+  
+  .reactCalendar {
+    width: 100%;
+    border: none;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+  }

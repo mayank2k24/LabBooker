@@ -3,18 +3,18 @@ import { Navigate, Outlet } from 'react-router-dom';
 import { AuthContext } from '../../context/AuthContext';
 
 const PrivateRoute = () => {
-  const authContext = useContext(AuthContext);
-  console.log('AuthContext in PrivateRoute:', authContext);
+  const { isAuthenticated, loading } = useContext(AuthContext);
 
-  if (!authContext) {
-    console.error('AuthContext is undefined in PrivateRoute');
+  if (loading) {
+    return <div>Loading...</div>; //(spinner TODO)
+  }
+
+  if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
 
-  const { isAuthenticated, loading } = authContext;
 
-  if (loading) return <div>Loading...</div>;
-  return isAuthenticated ? <Outlet /> : <Navigate to="/login" />;
+  return <Outlet />;
 };
 
 export default PrivateRoute;

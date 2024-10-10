@@ -11,7 +11,8 @@ const BookingSchema = new mongoose.Schema({
     required: true
   },
   resource: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
+    ref:'Resource',
     required: true
   },
   start: {
@@ -21,6 +22,15 @@ const BookingSchema = new mongoose.Schema({
   end: {
     type: Date,
     required: true
+  },
+  status:{
+    type:String,
+    enum:['pending','approved','rejected'],
+    default:'approved'
+  },
+  createdAt:{
+    type:Date,
+    default:Date.now
   }
 });
 

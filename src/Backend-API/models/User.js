@@ -8,7 +8,9 @@ const UserSchema = new mongoose.Schema({
   email: {
     type: String,
     required: true,
-    unique: true
+    unique: true,
+    lowercase: true,
+    trim: true
   },
   password: {
     type: String,
@@ -18,10 +20,22 @@ const UserSchema = new mongoose.Schema({
     type: Date,
     default: Date.now
   },
-  role: { 
-    type: String, 
-    enum: ['user', 'admin'],
-    default: 'user' }
+  isConfirmed: {
+    type: Boolean,
+    default: false
+  },
+  isApproved: {
+    type: String,
+    enum:['approved','pending'],
+    default: 'pending'
+  },
+  isAdmin:{
+    type: Boolean,
+    default : false
+  },
+  resetPasswordToken: String,
+  resetPasswordExpires: Date,
+  confirmationToken: String
 });
 
 module.exports = mongoose.model('User', UserSchema);

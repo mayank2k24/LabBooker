@@ -1,7 +1,11 @@
 {
     "todo-tree.tree.showBadges": false,
     "cSpell.words": [
+        "MAILGUN",
         "savera",
         "Savera"
+    ],
+    "cSpell.ignoreWords": [
+        "LABBOOKER"
     ]
 }

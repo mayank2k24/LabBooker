@@ -1,0 +1,63 @@
+.adminLayout {
+    display: flex;
+    min-height: 100vh;
+  }
+  
+  .sidebar {
+    width: 250px;
+    background-color: #f8f9fa;
+    padding: 20px;
+    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .content {
+    flex-grow: 1;
+    padding: 30px;
+    background-color: #ffffff;
+  }
+  
+  .navLink {
+    text-decoration: none;
+    color: #333;
+    display: block;
+    padding: 12px 15px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .navLink:hover {
+    background-color: #e9ecef;
+  }
+  
+  .activeLink {
+    color: #007bff;
+    font-weight: bold;
+    background-color: #e9ecef;
+  }
+  
+  .sidebar h2 {
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid #dee2e6;
+  }
+  
+  .sidebar ul {
+    list-style-type: none;
+    padding: 0;
+  }
+  
+  .sidebar li {
+    margin-bottom: 10px;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+
+  .container h1 {
+    margin-bottom: 20px;
+  }
+  

@@ -7,12 +7,12 @@ const Register = () => {
     name: '',
     email: '',
     password: '',
-    password2: ''
+    confirmPassword: '',
   });
 
-  const { name, email, password, password2 } = formData;
+  const { name, email, password, confirmPassword, confirmationToken } = formData;
   const { register } = useContext(AuthContext);
-  const navigate = useNavigate();
+  const navigate= useNavigate();
   const [error, setError] = useState('');
 
   const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -21,15 +21,17 @@ const Register = () => {
     e.preventDefault();
     setError('');
   
-    if (password !== password2) {
+    if (password !== confirmPassword) {
       setError('Passwords do not match');
       return;
     }
   
     try {
-      const result = await register(name, email, password);
+      const result = await register(name, email, password,confirmationToken);
       if (result.success) {
-        navigate('/dashboard');
+        setError('');
+        alert('Registration successful. Please check your email to confirm your account.');
+        navigate('/login');
       } else {
         setError(result.message || 'Registration failed');
       }
@@ -71,7 +73,7 @@ const Register = () => {
             name="password"
             value={password}
             onChange={onChange}
-            minLength="6"
+            minLength="8"
             required
           />
         </div>
@@ -79,10 +81,10 @@ const Register = () => {
           <input
             type="password"
             placeholder="Confirm Password"
-            name="password2"
-            value={password2}
+            name="confirmPassword"
+            value={confirmPassword}
             onChange={onChange}
-            minLength="6"
+            minLength="8"
             required
           />
         </div>

@@ -3,6 +3,7 @@ const router = express.Router();
 const {verifyToken,generateToken} = require('../middleware/auth');
 const Booking = require('../models/Booking');
 const { checkAvailability } = require('../utils/bookingHelpers');
+const redis = require('../utils/redisClient');
 const { compareSync } = require('bcryptjs');
 
 // POST /api/bookings
@@ -21,13 +22,7 @@ router.post('/', verifyToken, async (req, res) => {
       return res.status(400).json({ error: 'Missing required fields', received: { resourceId, resource, start, end } });
     }
 
-    // if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-    //   return res.status(400).json({ msg: 'Invalid Date format' });
-    // }
-
-    // if (!isNaN(Date.parse(start)) || !isNaN(Date.parse(end))) {
-    //   return res.status(400).json({ error: 'Invalid date format' });
-    // }
+  
 
     // Check if the booking date is valid (3 days to 2 hours before)
     const now = new Date();
@@ -203,7 +198,56 @@ router.put('/:id', verifyToken, async (req, res) => {
   }
 });
 
-// GET /api/bookings/stats
+router.post('/create-booking', async (req, res) => {
+  const { resourceId, startTime, endTime } = req.body;
+  const lockKey = `booking:${resourceId}:${startTime}:${endTime}`;
+  const lockTimeout = 5000; // 5 seconds
+
+  try {
+    // Try to acquire a lock
+    const locked = await redis.set(lockKey, 'locked', 'PX', lockTimeout, 'NX');
+    
+    if (!locked) {
+      return res.status(409).json({ message: 'This slot is currently being booked. Please try again.' });
+    }
+
+    // Check if the slot is still available
+    const existingBooking = await Booking.findOne({ resourceId, startTime, endTime });
+    if (existingBooking) {
+      await redis.del(lockKey);
+      return res.status(409).json({ message: 'This slot has already been booked.' });
+    }
+
+    // Create the booking
+    const newBooking = new Booking({
+      resourceId,
+      startTime,
+      endTime,
+      userId: req.user.id,
+      version: 1 // Initial version
+    });
+
+    // Save the booking with optimistic concurrency control
+    const savedBooking = await Booking.findOneAndUpdate(
+      { resourceId, startTime, endTime, version: 0 },
+      newBooking,
+      { new: true, upsert: true, setDefaultsOnInsert: true }
+    );
+
+    if (!savedBooking) {
+      await redis.del(lockKey);
+      return res.status(409).json({ message: 'Booking failed. Please try again.' });
+    }
+
+    await redis.del(lockKey);
+    res.status(201).json(savedBooking);
+
+  } catch (error) {
+    await redis.del(lockKey);
+    res.status(500).json({ message: 'Error creating booking', error: error.message });
+  }
+});
+
 router.get('/stats', verifyToken, async (req, res) => {
   try {
     const now = new Date();
@@ -231,6 +275,28 @@ router.get('/stats', verifyToken, async (req, res) => {
       pastBookings,
       mostBookedResource: mostBookedResource[0] ? mostBookedResource[0]._id : 'N/A'
     });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+router.post('/undo-delete', verifyToken, async (req, res) => {
+ try{
+   const newBooking = new Booking(req.body);
+   const booking = await newBooking.save();
+   res.json(booking);
+ } catch (err) {
+  console.error(err.message);
+  res.status(500).send('Server Error');
+ }
+});
+
+router.put('/undo-delete/:id', verifyToken, async (req, res) => {
+  try {
+    const booking = await Booking.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!booking) return res.status(404).json({ msg: 'Booking not found' });
+    res.json(booking);
   } catch (err) {
     console.error(err.message);
     res.status(500).send('Server Error');

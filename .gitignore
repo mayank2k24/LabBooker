@@ -5,3 +5,9 @@ docs
 .env
 
 /node_modules/
+
+.deepsource.toml
+newrelic_agent.log
+.vscode
+.github
+
