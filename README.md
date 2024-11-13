@@ -22,32 +22,31 @@ This advanced booking system is designed to efficiently manage resource reservat
 
 ### Redis Implementation
 
-- [ ] Set up Redis connection and error handling
-- [ ] Implement temporary locking mechanism for time slots using Redis
-- [ ] Use Redis for quick availability checks
-- [ ] Update booking creation process to use Redis for conflict prevention
+- [x] Set up Redis connection and error handling
+- [x] Implement temporary locking mechanism for time slots using Redis
+- [x] Use Redis for quick availability checks
+- [x] Update booking creation process to use Redis for conflict prevention
 - [ ] Add Redis data synchronization with the main database
 - [ ] Implement Redis data expiration for efficient memory usage
 - [ ] Add error handling and fallback mechanisms for Redis operations
-- [ ] Create unit and integration tests for Redis functionality
 
 ### Visual Booking Component
 
 - [x] Research and decide between Konva.js and Lucide React for the visual component
 - [x] Choose Lucide React for implementing the lab layout and booking interface
-- [ ] Design the layout for the visual booking interface (focus on labs with max 40 PCs)
+- [x] Design the layout for the visual booking interface (focus on labs with max 40 PCs)
 - [ ] Implement a calendar view showing available and booked time slots for labs
-- [ ] Create a dynamic lab layout system (supporting up to 40 PCs)
+- [x] Create a dynamic lab layout system (supporting up to 40 PCs)
 - [ ] Create whiteboard.js for system design or architecture visualization
 - [ ] Implement real-time updates for the visual component
-- [ ] Ensure the visual component is responsive and works on different screen sizes
-- [ ] Add accessibility features to the visual booking component
+- [x] Ensure the visual component is responsive and works on different screen sizes
+- [x] Add accessibility features to the visual booking component
 
 ## Refactoring Tasks
 
-- [ ] Rewrite labLayouts component for better performance and flexibility
-- [ ] Refactor Visual Booking component to focus on lab bookings
-- [ ] Evaluate the necessity of the Legend component and potentially integrate it into the main interface
+- [x] Rewrite labLayouts component for better performance and flexibility
+- [x] Refactor Visual Booking component to focus on lab bookings
+- [x] Evaluate the necessity of the Legend component and potentially integrate it into the main interface
 
 ## Technology Stack
 
@@ -99,6 +98,8 @@ REDIS_TLS=true_or_false
 MAILGUN CREDENTIALS
 CORS_ORIGIN=your_cors_origin
 HELP_MAIL=your_help_mail
+REACT_APP_CAPTCHA_SITE_KEY= google recaptcha site key v2 tickbox
+CAPTCHA_SECRET_KEY = google recaptcha secret key v2 tickbox
 
 Ensure to replace the placeholder values with your actual configuration details.
 
@@ -124,9 +125,7 @@ For administrators:
 
 - POST /api/auth/register - Register a new user
 - POST /api/auth/login - User login
-- GET /api/auth/me - Get current user's profile
 - POST /api/auth/logout - User logout
-- PUT /api/auth/update-profile - Update user profile
 - POST /api/auth/forgot-password - Request password reset
 - POST /api/auth/reset-password - Reset password with token
 
