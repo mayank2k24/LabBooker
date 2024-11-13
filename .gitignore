@@ -3,7 +3,8 @@ package-lock.json
 package.json
 docs
 .env
-
+src/Frontend/client/node_modules/
+src/Frontend/client/build/
 /node_modules/
 
 .deepsource.toml

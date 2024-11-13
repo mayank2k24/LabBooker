@@ -1,63 +1,91 @@
 .adminLayout {
-    display: flex;
-    min-height: 100vh;
-  }
-  
+  display: flex;
+  min-height: 100vh;
+  background: var(--neutral-50);
+}
+
+.sidebar {
+  width: 280px;
+  background: white;
+  padding: 2rem;
+  box-shadow: var(--shadow-md);
+  position: fixed;
+  height: 100vh;
+  overflow-y: auto;
+  transition: all var(--transition-normal);
+}
+
+.content {
+  flex: 1;
+  margin-left: 280px;
+  padding: 2rem;
+  background: var(--neutral-50);
+}
+
+.sidebarHeader {
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--neutral-200);
+}
+
+.sidebarTitle {
+  color: var(--neutral-800);
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0;
+}
+
+.navList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.navItem {
+  margin-bottom: 0.5rem;
+}
+
+.navLink {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  color: var(--neutral-600);
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+}
+
+.navLink:hover {
+  background: var(--neutral-100);
+  color: var(--primary);
+}
+
+.activeLink {
+  background: var(--primary);
+  color: white;
+}
+
+.activeLink:hover {
+  background: var(--primary-dark);
+  color: white;
+}
+
+.navIcon {
+  font-size: 1.25rem;
+}
+
+@media (max-width: 768px) {
   .sidebar {
-    width: 250px;
-    background-color: #f8f9fa;
-    padding: 20px;
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+    transform: translateX(-100%);
+    z-index: 1000;
   }
-  
+
+  .sidebar.open {
+    transform: translateX(0);
+  }
+
   .content {
-    flex-grow: 1;
-    padding: 30px;
-    background-color: #ffffff;
+    margin-left: 0;
   }
-  
-  .navLink {
-    text-decoration: none;
-    color: #333;
-    display: block;
-    padding: 12px 15px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
-  }
-  
-  .navLink:hover {
-    background-color: #e9ecef;
-  }
-  
-  .activeLink {
-    color: #007bff;
-    font-weight: bold;
-    background-color: #e9ecef;
-  }
-  
-  .sidebar h2 {
-    margin-bottom: 20px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #dee2e6;
-  }
-  
-  .sidebar ul {
-    list-style-type: none;
-    padding: 0;
-  }
-  
-  .sidebar li {
-    margin-bottom: 10px;
-  }
-
-  .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 20px;
-  }
-
-  .container h1 {
-    margin-bottom: 20px;
-  }
-  
+}

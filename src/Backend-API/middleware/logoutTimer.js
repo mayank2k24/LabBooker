@@ -1,7 +1,9 @@
 
 const jwt = require('jsonwebtoken');
 
+console.log("logoutTimer middleware loaded");
 const logoutTimer = (req, res, next) => {
+  console.log("logoutTimer middleware called");
   const token = req.header('Authorization')?.replace('Bearer ', '');
 
   // If there's no token, just move to the next middleware

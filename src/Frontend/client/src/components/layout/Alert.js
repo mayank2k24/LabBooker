@@ -10,6 +10,11 @@ const Alert = () => {
     clearAlerts();
   }, [location, clearAlerts]);
 
+  if (!alerts || alerts.length === 0) {
+    return null;
+  }
+
+
   return (
     <div className="alert-container">
       {alerts.map(alert => (

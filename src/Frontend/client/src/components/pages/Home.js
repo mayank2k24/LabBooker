@@ -9,6 +9,8 @@ const Home = () => {
       <Link to={'/dashboard'}>Welcome to Dashboard!</Link>
       <br />
       <Link to={'/bookings'}>check out Bookings!</Link>
+      <br />
+      <Link to={'/visual-booking'}>check out Visual Booking!</Link>
       <HelpIcon />
     </div>
   );

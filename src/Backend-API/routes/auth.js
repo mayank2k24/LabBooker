@@ -7,6 +7,7 @@ const User = require('../models/User');
 const crypto = require('crypto');
 const {verifyToken,generateToken} = require('../middleware/auth');
 const { sendConfirmationEmail,sendPasswordResetEmail ,normalizeEmail } = require('../utils/email-worker');
+const axios = require("axios");
 
 // GET api/auth/user
 // Get logged in user
@@ -26,15 +27,35 @@ router.get('/user', verifyToken , async (req, res,next) => {
 // @access  Public
 router.post('/',async (req, res) => {
   console.log('registration');
-  const { name, email, password} = req.body;
+  const { name, email, password } = req.body;
+  const captcha = req.body.captcha?.captcha; // Extract captcha value from nested object
   const normalizedEmail = normalizeEmail(email);
-  if (!name || !email || !password) {
-    console.log('provide email , password');
-    return res.status(400).json({ msg: 'Please provide name, email, and password' });
-  }
-  console.log('Received registration request:', { name, email});
-  
+
   try {
+    // Verify CAPTCHA
+    const secretKey = process.env.REACT_APP_CAPTCHA_SECRET_KEY;
+    const verifyURL = `https://www.google.com/recaptcha/api/siteverify`;
+    const captchaResponse = await axios.post(verifyURL, null, {
+      params: {
+        secret: secretKey,
+        response: captcha
+      }
+    });
+
+    if (!captchaResponse.data.success) {
+      return res.status(400).json({
+        success: false,
+        message: 'CAPTCHA verification failed',
+        details: captchaResponse.data['error-codes']
+      });
+    }
+
+    if (!name || !email || !password) {
+      console.log('provide email , password');
+      return res.status(400).json({ msg: 'Please provide name, email, and password' });
+    }
+    console.log('Received registration request:', { name, email});
+    
     console.time('findUser');
     let user = await User.findOne({ email:normalizedEmail });
     console.timeEnd('findUser');
@@ -80,7 +101,7 @@ router.post('/',async (req, res) => {
    
     await sendConfirmationEmail(user, confirmationToken);
     
-     res.status(201).json({ success: true, message: 'Registration successful. Please check your email to confirm your account.', token });
+    res.status(201).json({ success: true, message: 'Registration successful. Please check your email to confirm your account.', token });
   } catch (err) {
     console.error('Registration error:', err);
     if (err.name === 'ValidationError') {
@@ -200,31 +221,62 @@ console.log('Current time:', Date.now());
 
 router.post('/login',async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, captcha } = req.body;
     const normalizedEmail = normalizeEmail(email);
-    // Find user by email
-    const user = await User.findOne({ email:normalizedEmail });
-    if (!user) {
-      return res.status(400).json({ msg: 'Invalid Credentials' });
-    }
 
-    if (!user?.isConfirmed) {
-      await sendConfirmationEmail(user);
-      return res.status(400).json({ msg: 'Your account is pending confirmation. Please check your email for further instructions.' });
+    // Verify CAPTCHA after credentials check
+    if (!captcha) {
+      return res.status(400).json({ msg: 'Please complete the CAPTCHA verification' });
     }
+    try{
+    const secretKey = process.env.CAPTCHA_SECRET_KEY;
+    const verifyURL = `https://www.google.com/recaptcha/api/siteverify`;
+    const captchaResponse = await axios.post(verifyURL, null, {
+      params: {
+        secret: secretKey,
+        response: captcha
+      }
+    });
 
-    if (!user?.isApproved) {
-      return res.status(403).json({ msg: 'Your account has not been approved yet. Please wait for approval.' });
+    if (!captchaResponse.data.success) {
+      return res.status(400).json({
+        success: false,
+        msg: 'CAPTCHA verification failed',
+        details: captchaResponse.data['error-codes']
+      });
     }
+  }catch(captchaError){
+    console.error('CAPTCHA verification error:', captchaError);
+    return res.status(400).json({
+      success: false,
+      msg: 'CAPTCHA verification failed'
+    });
+  }
 
-    // Check password
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ msg: 'Invalid Credentials' });
-    }
+  // Find user by email first
+  const user = await User.findOne({ email:normalizedEmail });
+  if (!user) {
+    return res.status(400).json({ msg: 'Invalid Credentials' });
+  }
+
+  if (!user?.isConfirmed) {
+    await sendConfirmationEmail(user);
+    return res.status(400).json({ msg: 'Your account is pending confirmation. Please check your email for further instructions.' });
+  }
+
+  if (!user?.isApproved) {
+    return res.status(403).json({ msg: 'Your account has not been approved yet. Please wait for approval.' });
+  }
+
+  // Check password
+  const isMatch = await bcrypt.compare(password, user.password);
+  if (!isMatch) {
+    return res.status(400).json({ msg: 'Invalid Credentials' });
+  }
+
     // Create and send token
     const token = await generateToken(user);
-    res.json({ token ,
+    res.json({ success:true,token ,
       user:{
         id:user._id,
         name:user.name,
@@ -234,6 +286,7 @@ router.post('/login',async (req, res) => {
     });
   } catch (err) {
     console.error(err.message);
+    
     res.status(500).send('Server error');
   }
 });

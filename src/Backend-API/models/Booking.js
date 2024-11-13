@@ -10,11 +10,6 @@ const BookingSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  resource: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref:'Resource',
-    required: true
-  },
   start: {
     type: Date,
     required: true
@@ -32,6 +27,6 @@ const BookingSchema = new mongoose.Schema({
     type:Date,
     default:Date.now
   }
-});
+},{timestamps:true});
 
 module.exports = mongoose.model('Booking', BookingSchema);

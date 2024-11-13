@@ -4,20 +4,35 @@ const {verifyToken,generateToken} = require('../middleware/auth');
 const Booking = require('../models/Booking');
 const { checkAvailability } = require('../utils/bookingHelpers');
 const redis = require('../utils/redisClient');
-const { compareSync } = require('bcryptjs');
+
+const getActiveBookings = async (userId = null) => { // utility function
+  const now = new Date();
+  const query = {
+    start: { $lte: now },
+    end: { $gte: now }
+  };
+  
+  if (userId) {
+    query.user = userId;
+  }
+  
+  return await Booking.find(query)
+    .populate('user', 'name email')
+    .sort({ start: 1 });
+};
 
 // POST /api/bookings
 router.post('/', verifyToken, async (req, res) => {
   console.log('Received booking request. Body:', JSON.stringify(req.body, null, 2));
   try {
-    const { resourceId, resource , start, end } = req.body;
+    const { resourceId, start, end } = req.body;
     
-    console.log('Received booking data:', { resourceId, resource ,start, end });
+    console.log('Received booking data:', { resourceId,start, end });
 
     const startDate = new Date(start);
     const endDate = new Date(end);
 
-    if (!resourceId || !resource || !start || !end) {
+    if (!resourceId || !start || !end) {
       console.log('Missing fields. resourceId:', resourceId, 'resource:', resource, 'start:', start, 'end:', end);
       return res.status(400).json({ error: 'Missing required fields', received: { resourceId, resource, start, end } });
     }
@@ -45,7 +60,6 @@ router.post('/', verifyToken, async (req, res) => {
     const newBooking = new Booking({
       user: req.user.id,
       resourceId,
-      resource,
       start: startDate,
       end: endDate
     });
@@ -164,6 +178,38 @@ router.get('/all', verifyToken, async (req, res) => {
     res.status(500).send('Server Error');
   }
 });
+// GET /api/bookings/:lab/:date
+router.get('/:lab/:date', async (req, res) => {
+  try {
+    const { lab, date } = req.params;
+    console.log(`Fetching bookings for lab: ${lab}, date: ${date}`); // Debugging log
+
+    const cacheKey = `bookings:${lab}:${date}`;
+    
+    const cachedBookings = await redis.get(cacheKey);
+    if (cachedBookings) {
+      console.log('Returning cached bookings'); // Debugging log
+      return res.json(JSON.parse(cachedBookings));
+    }
+
+    const startDate = new Date(date);
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 1);
+
+    const bookings = await Booking.find({
+      resource: lab,
+      start: { $gte: startDate, $lt: endDate }
+    });
+
+    console.log(`Found ${bookings.length} bookings`); // Debugging log
+
+    await redis.set(cacheKey, JSON.stringify(bookings), 'EX', 3600); // Cache for 1 hour
+    res.json(bookings);
+  } catch (err) {
+    console.error('Error fetching lab bookings:', err);
+    res.status(500).json({ error: 'Failed to fetch lab bookings' });
+  }
+});
 
 // PUT /api/bookings/:id
 router.put('/:id', verifyToken, async (req, res) => {
@@ -199,51 +245,33 @@ router.put('/:id', verifyToken, async (req, res) => {
 });
 
 router.post('/create-booking', async (req, res) => {
-  const { resourceId, startTime, endTime } = req.body;
-  const lockKey = `booking:${resourceId}:${startTime}:${endTime}`;
-  const lockTimeout = 5000; // 5 seconds
-
+  console.log('Received booking data:', req.body);
   try {
-    // Try to acquire a lock
-    const locked = await redis.set(lockKey, 'locked', 'PX', lockTimeout, 'NX');
+    const { resourceId, start, end, user } = req.body;
     
-    if (!locked) {
-      return res.status(409).json({ message: 'This slot is currently being booked. Please try again.' });
+    if (!resourceId || !start || !end || !user) {
+      console.log('Missing fields:', { resourceId, start, end, user });
+      return res.status(400).json({ 
+        message: 'Missing required fields', 
+        missingFields: { resourceId: !resourceId, start: !start, end: !end, user: !user } 
+      });
     }
 
-    // Check if the slot is still available
-    const existingBooking = await Booking.findOne({ resourceId, startTime, endTime });
-    if (existingBooking) {
-      await redis.del(lockKey);
-      return res.status(409).json({ message: 'This slot has already been booked.' });
-    }
-
-    // Create the booking
     const newBooking = new Booking({
       resourceId,
-      startTime,
-      endTime,
-      userId: req.user.id,
-      version: 1 // Initial version
+      start,
+      end,
+      user
     });
 
-    // Save the booking with optimistic concurrency control
-    const savedBooking = await Booking.findOneAndUpdate(
-      { resourceId, startTime, endTime, version: 0 },
-      newBooking,
-      { new: true, upsert: true, setDefaultsOnInsert: true }
-    );
-
-    if (!savedBooking) {
-      await redis.del(lockKey);
-      return res.status(409).json({ message: 'Booking failed. Please try again.' });
-    }
-
-    await redis.del(lockKey);
-    res.status(201).json(savedBooking);
+    await newBooking.save();
+    res.status(201).json(newBooking);
 
   } catch (error) {
-    await redis.del(lockKey);
+    console.error('Error creating booking:', error);
+    if (error.name === 'ValidationError') {
+      return res.status(400).json({ message: 'Validation Error', error: error.message });
+    }
     res.status(500).json({ message: 'Error creating booking', error: error.message });
   }
 });
@@ -252,6 +280,7 @@ router.get('/stats', verifyToken, async (req, res) => {
   try {
     const now = new Date();
 
+    const activeBookings = await getActiveBookings(req.user.id); 
     const totalBookings = await Booking.countDocuments({ user: req.user.id });
     const upcomingBookings = await Booking.countDocuments({ 
       user: req.user.id,
@@ -264,12 +293,13 @@ router.get('/stats', verifyToken, async (req, res) => {
 
     const mostBookedResource = await Booking.aggregate([
       { $match: { user: req.user.id } },
-      { $group: { _id: '$resource', count: { $sum: 1 } } },
+      { $group: { _id: '$resourceId', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
       { $limit: 1 }
     ]);
 
     res.json({
+      activeBookings,
       totalBookings,
       upcomingBookings,
       pastBookings,

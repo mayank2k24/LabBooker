@@ -4,12 +4,14 @@
 This advanced booking system is designed to efficiently manage resource reservations with features like conflict resolution, user approval, and high-performance data handling using Redis.
 
 ## Recent Updates
+
 - Integrated Redis for improved performance and conflict reduction
 - Added user approval system for enhanced security
 - Implemented basic conflict resolution mechanism
 - Planning to add a visual booking component for better user experience
 
 ## Features
+
 - User registration and authentication
 - Admin panel for user management and system oversight
 - Resource booking with conflict detection
@@ -19,6 +21,7 @@ This advanced booking system is designed to efficiently manage resource reservat
 ## TODO
 
 ### Redis Implementation
+
 - [ ] Set up Redis connection and error handling
 - [ ] Implement temporary locking mechanism for time slots using Redis
 - [ ] Use Redis for quick availability checks
@@ -30,15 +33,21 @@ This advanced booking system is designed to efficiently manage resource reservat
 
 ### Visual Booking Component
 
-- [ ] Research and decide between Konva.js and Lucide React for the visual component
-- [ ] Design the layout for the visual booking interface
-- [ ] Implement a calendar view showing available and booked time slots
-- [ ] Add drag-and-drop functionality for creating and modifying bookings
-- [ ] add a whiteboard.js so that when can do something he want to like system design or architecture
+- [x] Research and decide between Konva.js and Lucide React for the visual component
+- [x] Choose Lucide React for implementing the lab layout and booking interface
+- [ ] Design the layout for the visual booking interface (focus on labs with max 40 PCs)
+- [ ] Implement a calendar view showing available and booked time slots for labs
+- [ ] Create a dynamic lab layout system (supporting up to 40 PCs)
+- [ ] Create whiteboard.js for system design or architecture visualization
 - [ ] Implement real-time updates for the visual component
 - [ ] Ensure the visual component is responsive and works on different screen sizes
 - [ ] Add accessibility features to the visual booking component
-- [ ] Create unit and integration tests for the visual booking component
+
+## Refactoring Tasks
+
+- [ ] Rewrite labLayouts component for better performance and flexibility
+- [ ] Refactor Visual Booking component to focus on lab bookings
+- [ ] Evaluate the necessity of the Legend component and potentially integrate it into the main interface
 
 ## Technology Stack
 
@@ -52,25 +61,27 @@ This advanced booking system is designed to efficiently manage resource reservat
 
 1. Clone the repository:
 
-   ```
-   git clone https://github.com/yourusername/advanced-booking-system.git
+   ```bash
+   git clone https://github.com/masharma2004/LabBooker.git
    ```
 
 2. Navigate to the project directory:
 
-   ```
-   cd advanced-booking-system
+   ```bash
+   cd LabBooker
    ```
 
 3. Install dependencies:
-   ```
+
+   ```bash
    npm install
    ```
 
 4. Set up environment variables (see Configuration section)
 
 5. Start the application:
-   ```
+
+   ```bash
    npm start
    ```
 
@@ -111,9 +122,13 @@ For administrators:
 
 ### User Routes
 
-- POST /api/users/register - Register a new user
-- POST /api/users/login - User login
-- GET /api/users/profile - Get user profile
+- POST /api/auth/register - Register a new user
+- POST /api/auth/login - User login
+- GET /api/auth/me - Get current user's profile
+- POST /api/auth/logout - User logout
+- PUT /api/auth/update-profile - Update user profile
+- POST /api/auth/forgot-password - Request password reset
+- POST /api/auth/reset-password - Reset password with token
 
 ### Booking Routes
 
@@ -133,4 +148,3 @@ For administrators:
 ## Contributing
 
 - Not open for contribution
-

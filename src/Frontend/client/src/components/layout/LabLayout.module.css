@@ -1,0 +1,101 @@
+.labLayout {
+  display: grid;
+  gap: 1.5rem;
+  padding: 2rem;
+  background: var(--neutral-50);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
+  animation: fadeIn var(--transition-normal);
+}
+
+.seat {
+  background: white;
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all var(--transition-normal);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.seat:hover:not(.booked):not(.emptySeat) {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.seat::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(to right, var(--primary), var(--secondary));
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+}
+
+.seat:hover::before:not(.booked):not(.emptySeat) {
+  opacity: 1;
+}
+
+.seat.booked {
+  background: var(--error);
+  color: white;
+}
+
+.seat.selected {
+  background: var(--success);
+  color: white;
+}
+
+.emptySeat {
+  background: transparent;
+  border: 2px dashed var(--neutral-300);
+  cursor: not-allowed;
+}
+
+.teacherDesk {
+  background: var(--neutral-200);
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+  color: var(--neutral-700);
+  box-shadow: var(--shadow-sm);
+}
+
+.door {
+  background: var(--secondary);
+  color: white;
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 500;
+}
+
+.seatNumber {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: inherit;
+}
+
+.seatIcon {
+  font-size: 1.5rem;
+  color: inherit;
+}
+
+@media (max-width: 768px) {
+  .labLayout {
+    padding: 1rem;
+    gap: 1rem;
+  }
+}

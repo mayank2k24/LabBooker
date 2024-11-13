@@ -6,6 +6,7 @@ import styles from './AdminDashboard.module.css';
 
 const AdminDashboard = () => {
   const [stats, setStats] = useState({
+    activeBookings: [],
     totalUsers: 0,
     pendingUsers: 0,
     totalBookings: 0,
@@ -15,6 +16,8 @@ const AdminDashboard = () => {
   const [bookings, setBookings] = useState([]);
   const { user, loading } = useContext(AuthContext);
   const { setAlert } = useContext(AlertContext);
+  const [error, setError] = useState(null);
+  const [IsLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (!loading && user && user.isAdmin) {
@@ -26,11 +29,15 @@ const AdminDashboard = () => {
 
   const fetchAdminStats = async () => {
     try {
-      const res = await axios.get('/api/admin/stats');
-      setStats(res.data);
-    } catch (error) {
-      console.error('Error fetching admin stats:', error);
-      setAlert('Failed to fetch admin statistics', 'danger');
+      loading(true);
+      const response = await axios.get('/api/bookings/admin/stats', {
+        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      });
+      setStats(response.data);
+    } catch (err) {
+      setError(err.message || 'Failed to fetch admin statistics');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -65,6 +72,7 @@ const AdminDashboard = () => {
   return (
     <div className={styles.dashboard}>
       <h2>Admin Dashboard</h2>
+      <h3>Welcome! {user.name}</h3>
       <div className={styles.statsGrid}>
         <div className={styles.statCard}>
           <h3>Total Users</h3>
@@ -83,8 +91,37 @@ const AdminDashboard = () => {
           <p>{stats.activeConflicts}</p>
         </div>
       </div>
+      <div className={styles.activeBookingsSection}>
+        <h2 className={styles.sectionTitle}>Current Active Bookings</h2>
+        <div className={styles.bookingsList}>
+          {stats.activeBookings.length === 0 ? (
+            <p className={styles.noBookings}>No active bookings at the moment</p>
+          ) : (
+            stats.activeBookings.map(booking => (
+              <div key={booking._id} className={styles.bookingCard}>
+                <div className={styles.bookingInfo}>
+                  <h3>Resource: {booking.resourceId}</h3>
+                  <p>User: {booking.user.name}</p>
+                  <p>Started: {new Date(booking.start).toLocaleTimeString()}</p>
+                  <p>Ends: {new Date(booking.end).toLocaleTimeString()}</p>
+                </div>
+                <div className={styles.timeRemaining}>
+                  <p>Time Remaining: {formatTimeRemaining(booking.end)}</p>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
     </div>
   );
+};
+
+const formatTimeRemaining = (endTime) => {
+  const remaining = new Date(endTime) - new Date();
+  const hours = Math.floor(remaining / (1000 * 60 * 60));
+  const minutes = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+  return `${hours}h ${minutes}m`;
 };
 
 export default AdminDashboard;

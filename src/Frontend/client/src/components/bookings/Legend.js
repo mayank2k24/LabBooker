@@ -1,25 +1,16 @@
 import React from 'react';
 import styles from './Legend.module.css';
+import { Circle } from 'lucide-react';
 
 const Legend = () => {
   return (
     <div className={styles.legend}>
-      <div className={styles.legendItem}>
-        <div className={`${styles.legendColor} ${styles.available}`}></div>
-        <span>Available</span>
-      </div>
-      <div className={styles.legendItem}>
-        <div className={`${styles.legendColor} ${styles.booked}`}></div>
-        <span>Booked</span>
-      </div>
-      <div className={styles.legendItem}>
-        <div className={`${styles.legendColor} ${styles.selected}`}></div>
-        <span>Selected</span>
-      </div>
-      <div className={styles.legendItem}>
-        <div className={`${styles.legendColor} ${styles.current}`}></div>
-        <span>Current Time Slot</span>
-      </div>
+      {['available', 'booked', 'selected', 'current'].map((status) => (
+        <div key={status} className={styles.legendItem}>
+          <Circle className={`${styles.legendColor} ${styles[status]}`} size={16} />
+          <span>{status.charAt(0).toUpperCase() + status.slice(1)}</span>
+        </div>
+      ))}
     </div>
   );
 };

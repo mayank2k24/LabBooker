@@ -1,0 +1,41 @@
+.registerContainer {
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  .registerForm {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .inputField {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  .submitButton {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+  
+  .submitButton:disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+  }
+  
+  .errorMessage {
+    color: red;
+    margin-bottom: 10px;
+  }
+  
+  .linkText {
+    margin-top: 15px;
+    text-align: center;
+  }

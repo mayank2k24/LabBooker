@@ -1,0 +1,143 @@
+.loginContainer {
+  max-width: 400px;
+  margin: 50px auto;
+  padding: 20px;
+  background-color: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+  text-align: center;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.loginForm {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.inputGroup {
+  position: relative;
+}
+
+.inputField {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 16px;
+  transition: border-color 0.3s;
+}
+
+.inputField:focus {
+  outline: none;
+  border-color: #1976d2;
+}
+
+.togglePassword {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  color: #1976d2;
+  z-index: 1;
+}
+
+.submitButton {
+  background-color: #1976d2;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s;
+}
+
+.submitButton:hover {
+  background-color: #1565c0;
+}
+
+.submitButton:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.errorMessage {
+  color: #d32f2f;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+.linkText {
+  text-align: center;
+  margin-top: 15px;
+}
+
+.link {
+  color: #1976d2;
+  text-decoration: none;
+}
+
+.link:hover {
+  text-decoration: underline;
+}
+
+.passwordInput{
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  -webkit-text-security: disc;
+  font-family: 'text-security-disc';
+  padding-right: 20px;
+}
+
+.passwordInput[type="text"] {
+  -webkit-text-security: none;
+  font-family: inherit;
+}
+
+
+@supports (-moz-appearance:none) {
+  .passwordInput {
+    font-family: inherit;
+  }
+  .passwordInput:not([type="text"]) {
+    color: transparent;
+    text-shadow: 0 0 0 #000;
+  }
+}
+
+.passwordInput::-ms-reveal,
+.passwordInput::-ms-clear {
+  display: none;
+}
+.passwordInput::-webkit-contacts-auto-fill-button,
+.passwordInput::-webkit-credentials-auto-fill-button {
+  visibility: hidden;
+  display: none !important;
+  pointer-events: none;
+  height: 0;
+  width: 0;
+  margin: 0;
+}
+
+.recaptchaContainer {
+  margin: 15px 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.errorMessage {
+  color: #ff0000;
+  margin: 5px 0;
+  font-size: 14px;
+}

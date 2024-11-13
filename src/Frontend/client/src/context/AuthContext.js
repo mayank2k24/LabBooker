@@ -48,15 +48,19 @@ export const AuthProvider = ({ children }) => {
     console.log("AuthProvider values:",{user,isAdmin,isAuthenticated,loading,error});
   }, [user,isAdmin,isAuthenticated,loading,error]);
   
-  const login = async (email, password) => {
+  const login = async (email, password,captchaToken) => {
     setError(null); 
     setLoading(true);
     try {
-      const res = await axios.post('/api/auth/login', { email, password });
-      localStorage.setItem('token', res.data.token);
-      setToken(res.data.token);
-      await loadUser();
-      return { success: true };
+      const res = await axios.post('/api/auth/login', { email, password ,captcha:captchaToken});
+
+      if(res.data.token){
+        localStorage.setItem('token', res.data.token);
+        setUser(res.data.user);
+        setToken(res.data.token);
+        await loadUser();
+        return { success: true };
+      }
     } catch (err) {
       console.error('Login error:', err);
       if (err.response) {
@@ -71,12 +75,12 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  const register = async (name, email, password,confirmationToken) => {
+  const register = async (name, email, password,confirmationToken,captchaToken) => {
     setError(null);
     setLoading(true);
     try {
       console.log('Sending registration request...');
-      const res = await axios.post('/api/users', { name, email, password,confirmationToken }  );
+      const res = await axios.post('/api/users', { name, email, password,confirmationToken,captcha:captchaToken});
       console.log('Registration response:', res.data);
       localStorage.setItem('token', res.data.token);
       await loadUser();

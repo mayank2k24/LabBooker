@@ -1,183 +1,143 @@
-// src/components/bookings/VisualBooking.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import axios from 'axios';
+import { format } from 'date-fns';
+import { toast } from 'react-toastify';
+import { useBookings } from '../../context/BookingContext';
 import styles from './VisualBooking.module.css';
-import { classroomLayouts } from './classroomLayouts';
+import { Layouts } from './Layouts';
 import CalendarView from './CalendarView';
 import Legend from './Legend';
-import { format } from 'date-fns';
+import LabLayout from '../layout/LabLayout';
 
 const VisualBooking = () => {
-  const [selectedClassroom, setSelectedClassroom] = useState('CVR-215');
+  const [selectedLab, setSelectedLab] = useState(Object.keys(Layouts)[0]);
   const [seats, setSeats] = useState([]);
+  const [bookingDate, setBookingDate] = useState(new Date());
+  const [startTime, setStartTime] = useState('');
+  const [endTime, setEndTime] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [selectedSeat, setSelectedSeat] = useState(null);
-  const [bookingInfo, setBookingInfo] = useState({
-    date: new Date(),
-    startTime: '',
-    endTime: '',
-    classroom: ''
-  });
-  const [hoveredSeat, setHoveredSeat] = useState(null);
+
+  const { addBooking, fetchAllBookings } = useBookings();
+
+  const fetchBookings = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const formattedDate = format(bookingDate, 'yyyy-MM-dd');
+      const response = await axios.get(`/api/bookings/${selectedLab}/${formattedDate}`);
+      updateSeatsStatus(response.data);
+    } catch (err) {
+      setError('Failed to fetch bookings');
+      toast.error('Failed to fetch bookings');
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedLab, bookingDate]);
 
   useEffect(() => {
-    initializeSeats(selectedClassroom);
     fetchBookings();
-  }, [selectedClassroom, bookingInfo.date]);
+  }, [fetchBookings]);
 
-  const initializeSeats = (classroomId) => {
-    const layout = classroomLayouts[classroomId];
-    const totalSeats = layout.rows * layout.seatsPerRow;
-    const initialSeats = Array(totalSeats).fill().map((_, index) => ({
-      id: `${classroomId}-${index + 1}`,
-      isBooked: false,
-      bookingDetails: null
+  const updateSeatsStatus = (bookings) => {
+    const updatedSeats = Layouts[selectedLab].seatArrangement.flat().filter(Boolean).map(seatNumber => ({
+      id: `${selectedLab}-${seatNumber}`,
+      number: seatNumber,
+      status: bookings.some(booking => 
+        booking.resourceId === `${selectedLab}-${seatNumber}` &&
+        new Date(booking.start) <= new Date() &&
+        new Date(booking.end) >= new Date()
+      ) ? 'booked' : 'available'
     }));
-    setSeats(initialSeats);
-    setBookingInfo(prev => ({ ...prev, classroom: classroomId }));
+    setSeats(updatedSeats);
   };
 
-  const fetchBookings = async () => {
+  const handleBooking = async () => {
+    if (!selectedSeat || !startTime || !endTime) {
+      toast.warn('Please select a seat and both start and end times.');
+      return;
+    }
+
     try {
-      const formattedDate = format(bookingInfo.date, 'yyyy-MM-dd');
-      const res = await axios.get(`/api/savera/bookings?classroom=${selectedClassroom}&date=${formattedDate}`);
-      updateSeatStatus(res.data);
-    } catch (error) {
-      console.error('Error fetching bookings:', error);
+      const response = await axios.post('/api/bookings', {
+        resourceId: `${selectedLab}-${selectedSeat}`,
+        start: `${format(bookingDate, 'yyyy-MM-dd')}T${startTime}:00`,
+        end: `${format(bookingDate, 'yyyy-MM-dd')}T${endTime}:00`
+      });
+      
+      if (response.data && response.data._id) {
+        toast.success('Booking successful!');
+        addBooking(response.data);  // Add the new booking to shared state
+        fetchBookings(); 
+        setSelectedSeat(null);
+        setStartTime('');
+        setEndTime('');
+      } else {
+        throw new Error('Booking failed');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.error || 'Booking failed. Please try again.');
+      console.error('Booking error:', err);
     }
   };
 
-  const updateSeatStatus = (bookings) => {
-    const updatedSeats = seats.map(seat => {
-      const booking = bookings.find(b => b.seat === seat.id);
-      return {
-        ...seat,
-        isBooked: !!booking,
-        bookingDetails: booking
-      };
-    });
-    setSeats(updatedSeats);
+  const handleDateChange = (date) => {
+    setBookingDate(date);
+  };
+
+  const handleLabChange = (e) => {
+    setSelectedLab(e.target.value);
   };
 
   const handleSeatClick = (seatId) => {
     setSelectedSeat(seatId);
   };
 
-  const handleBooking = async () => {
-    if (!selectedSeat) return;
+  if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
 
-    try {
-      await axios.post('/api/savera/bookings', {
-        ...bookingInfo,
-        seat: selectedSeat,
-        date: format(bookingInfo.date, 'yyyy-MM-dd')
-      });
-      fetchBookings();
-      setSelectedSeat(null);
-    } catch (error) {
-      console.error('Error booking seat:', error);
-    }
-  };
-
-  const handleDateChange = (date) => {
-    setBookingInfo(prev => ({ ...prev, date }));
-  };
-
-  const isCurrentTimeSlot = (seat) => {
-    if (!seat.bookingDetails) return false;
-    const now = new Date();
-    const startTime = new Date(now.toDateString() + ' ' + seat.bookingDetails.startTime);
-    const endTime = new Date(now.toDateString() + ' ' + seat.bookingDetails.endTime);
-    return now >= startTime && now <= endTime;
-  };
-
-  const renderSeat = (seat, index) => {
-    const isBooked = seat.isBooked;
-    const isCurrent = isCurrentTimeSlot(seat);
-    const isSelected = selectedSeat === seat.id;
-
-    return (
-      <div 
-        key={seat.id}
-        className={`${styles.seat} 
-                    ${isBooked ? styles.booked : ''} 
-                    ${isSelected ? styles.selected : ''} 
-                    ${isCurrent ? styles.current : ''}`}
-        onClick={() => !isBooked && handleSeatClick(seat.id)}
-        onMouseEnter={() => setHoveredSeat(seat)}
-        onMouseLeave={() => setHoveredSeat(null)}
-      >
-        <span className={styles.computerIcon}>💻</span>
-        {hoveredSeat === seat && seat.bookingDetails && (
-          <div className={styles.tooltip}>
-            <p>Booked: {seat.bookingDetails.startTime} - {seat.bookingDetails.endTime}</p>
-          </div>
-        )}
-      </div>
-    );
-  };
-
-  const layout = classroomLayouts[selectedClassroom];
-
-  
   return (
     <div className={styles.visualBooking}>
-      <h2>Visual Booking</h2>
-      <div className={styles.controlPanel}>
-        <select 
-          value={selectedClassroom} 
-          onChange={(e) => setSelectedClassroom(e.target.value)}
-        >
-          {Object.keys(classroomLayouts).map(classroomId => (
-            <option key={classroomId} value={classroomId}>
-              {classroomLayouts[classroomId].name}
-            </option>
-          ))}
-        </select>
-        <CalendarView selectedDate={bookingInfo.date} onDateChange={handleDateChange} />
-        <div className={styles.timeInputs}>
-          <input 
-            type="time" 
-            value={bookingInfo.startTime} 
-            onChange={(e) => setBookingInfo({...bookingInfo, startTime: e.target.value})}
-          />
-          <input 
-            type="time" 
-            value={bookingInfo.endTime} 
-            onChange={(e) => setBookingInfo({...bookingInfo, endTime: e.target.value})}
-          />
-        </div>
-        <button onClick={handleBooking} disabled={!selectedSeat}>Book Selected Seat</button>
-      </div>
-      <div className={styles.roomLayout}>
-        <div className={`${styles.door} ${styles[layout.doorPosition]}`}>
-          <span className={styles.doorIcon}>🚪</span>
-        </div>
-        <div className={`${styles.teacherDesk} ${styles[layout.teacherDeskPosition]}`}>
-          <span className={styles.teacherDeskIcon}>👩‍🏫</span>
-        </div>
-        <div className={styles.seatsContainer} style={{
-          gridTemplateColumns: `repeat(${layout.seatsPerRow}, 1fr)`,
-          gridTemplateRows: `repeat(${layout.rows}, 1fr)`
-        }}>
-          {seats.map(renderSeat)}
-        </div>
-        {layout.tables.map((table, index) => (
-          <div 
-            key={index} 
-            className={styles.table} 
-            style={{
-              gridColumn: `${table.startCol} / span ${table.width}`,
-              gridRow: `${table.startRow} / span ${table.height}`
-            }}
-          >
-            <span className={styles.tableIcon}>📊</span>
+      <h2>Lab Booking</h2>
+      <div className={styles.bookingContainer}>
+        <div className={styles.leftPanel}>
+          <CalendarView selectedDate={bookingDate} onDateChange={handleDateChange} />
+          <div className={styles.controlPanel}>
+            <select value={selectedLab} onChange={handleLabChange}>
+              {Object.keys(Layouts).map(labId => (
+                <option key={labId} value={labId}>{Layouts[labId].name}</option>
+              ))}
+            </select>
+            <div className={styles.timeInputs}>
+              <input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                placeholder="Start Time"
+              />
+              <input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
+                placeholder="End Time"
+              />
+            </div>
+            <button onClick={handleBooking}>Book Selected Seat</button>
           </div>
-        ))}
+        </div>
+        <div className={styles.rightPanel}>
+          <LabLayout 
+            layout={Layouts[selectedLab]} 
+            seats={seats}
+            selectedSeat={selectedSeat}
+            onSeatClick={handleSeatClick} 
+          />
+          <Legend />
+        </div>
       </div>
-      <Legend />
     </div>
   );
 };
 
 export default VisualBooking;
-

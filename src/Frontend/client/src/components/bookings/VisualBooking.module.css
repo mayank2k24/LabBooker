@@ -79,6 +79,46 @@
   font-size: 24px;
 }
 
+.bookingContainer {
+  display: flex;
+  gap: 20px;
+  flex-direction: column;
+}
+
+@media (min-width: 768px) {
+  .bookingContainer {
+    flex-direction: row;
+  }
+}
+
+.leftPanel {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.rightPanel {
+  flex: 2;
+}
+
+.controlPanel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.timeInputs {
+  display: flex;
+  gap: 10px;
+}
+
+@media (min-width: 768px) {
+  .timeInputs {
+    flex-direction: column;
+  }
+}
+
 .tooltip {
   position: absolute;
   bottom: 100%;

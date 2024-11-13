@@ -10,4 +10,3 @@ window.addEventListener('unhandledrejection', function(event) {
 
 const root = createRoot(document.getElementById('root'));
 root.render(<App />);
-

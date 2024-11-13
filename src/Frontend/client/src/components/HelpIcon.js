@@ -1,14 +1,21 @@
 import React, { useState } from 'react';
-
+import './HelpIcon.modules.css';
+import { MessageCircleQuestion } from 'lucide-react';
 
 const HelpIcon = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [description, setDescription] = useState('');
+  const [error, setError] = useState('');
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    setError('');
+    if(name.trim() === '' || email.trim() === '' || description.trim() === ''){
+      setError('All fields are required');
+      return;
+    }
     const subject = encodeURIComponent('Help Request');
     const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nDescription: ${description}`);
     window.location.href = `mailto:help@labbooker.mayankgroup.tech?subject=${subject}&body=${body}`;
@@ -19,19 +26,25 @@ const HelpIcon = () => {
   };
 
   return (
-    <div style={{ position: 'fixed', bottom: '20px', right: '20px' }}>
-      {isOpen ? (
-        <form onSubmit={handleSubmit} style={{ background: 'white', padding: '20px', borderRadius: '10px', boxShadow: '0 0 10px rgba(0,0,0,0.1)' }}>
-          <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" required />
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required />
-          <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="How can we help?" required />
-          <button type="submit">Send</button>
-          <button type="button" onClick={() => setIsOpen(false)}>Close</button>
-        </form>
-      ) : (
-        <button onClick={() => setIsOpen(true)} style={{ borderRadius: '50%', width: '60px', height: '60px', fontSize: '24px' }}>?</button>
-      )}
-    </div>
+    <div className="help-icon-container">
+    {isOpen ? (
+      <form onSubmit={handleSubmit} className={`help-form ${isOpen ?'open':''}`}>
+        <h2>How can we help?</h2>
+        <input type="text" value={name} onChange={(e) => setName(e.target.value)} placeholder="Name" required />
+        <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email" required />
+        <textarea value={description} onChange={(e) => setDescription(e.target.value)} placeholder="Describe your issue" required />
+        {error && <p className="error-message">{error}</p>}
+        <div className="button-group">
+          <button type="submit" className="submit-btn">Send</button>
+          <button type="button" onClick={() => setIsOpen(false)} className="close-btn">Close</button>
+        </div>
+      </form>
+    ) : (
+      <button onClick={() => setIsOpen(true)} className="help-button" aria-label="OpenHelp">
+        <span className='help-icon' aria-hidden="true"><MessageCircleQuestion size={36} /></span>
+      </button>
+    )}
+  </div>
   );
 };
 

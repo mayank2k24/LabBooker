@@ -32,3 +32,67 @@
   font-size: 1.5em;
   color: #000;
 }
+
+.activeBookingsSection {
+  margin-top: 2rem;
+  background: white;
+  border-radius: var(--radius-lg);
+  padding: 1.5rem;
+  box-shadow: var(--shadow-md);
+}
+
+.sectionTitle {
+  color: var(--neutral-800);
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 2px solid var(--neutral-200);
+}
+
+.bookingsList {
+  display: grid;
+  gap: 1rem;
+}
+
+.bookingCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: var(--neutral-50);
+  border-radius: var(--radius-md);
+  border-left: 4px solid var(--primary);
+  transition: transform 0.2s ease;
+}
+
+.bookingCard:hover {
+  transform: translateX(5px);
+}
+
+.bookingInfo h3 {
+  color: var(--neutral-800);
+  font-size: 1.1rem;
+  margin-bottom: 0.5rem;
+}
+
+.bookingInfo p {
+  color: var(--neutral-600);
+  margin: 0.25rem 0;
+}
+
+.timeRemaining {
+  background: var(--primary);
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  font-weight: 500;
+}
+
+.noBookings {
+  text-align: center;
+  color: var(--neutral-600);
+  padding: 2rem;
+  background: var(--neutral-50);
+  border-radius: var(--radius-md);
+  font-style: italic;
+}

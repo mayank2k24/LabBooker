@@ -1,79 +1,113 @@
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect, useRef } from 'react';
 import { AuthContext } from '../../context/AuthContext';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-
-axios.defaults.baseURL = process.env.REACT_APP_AXIOS_BASE_URL || 'http://localhost:5000';
+import styles from './Login.module.css';
+import ReCAPTCHA from 'react-google-recaptcha';
 
 const Login = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: ''
-  });
-  const { email, password } = formData;
-  const { login, isAdmin } = useContext(AuthContext);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const { login, isAdmin, isAuthenticated } = useContext(AuthContext);
   const navigate = useNavigate();
   const [error, setError] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [captchaValue, setCaptchaValue] = useState(null);
+  const [captchaError, setCaptchaError] = useState('');
 
-  const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/");
+    }
+  }, [isAuthenticated, navigate]);
 
-  const onSubmit = async e => {
+  const onSubmit = async (e) => {
     e.preventDefault();
     setError('');
+    setCaptchaError('');
+    setIsLoading(true);
+
+    if (!captchaValue) {
+      setCaptchaError('Please complete the CAPTCHA verification');
+      setIsLoading(false);
+      return;
+    }
+    
     try {
-      const result = await login(email, password);
+      const result = await login(email, password, captchaValue);
       if (result.success) {
         if (isAdmin) {
           navigate("/admin");
         } else {
-          navigate("/dashboard");
+          navigate("/");
         }
       } else {
-        setError(result.message);
-      }
+        setError(result.message || 'Invalid email or password. Please try again.');
+        if(window.grecaptcha){
+          window.grecaptcha.reset();
+        }
+          setCaptchaValue(null);
+        }
     } catch (err) {
-      console.error('Login error:', err.response.data);
       console.error('Login error:', err);
-      if (err.response) {
-        setError(`Login failed: ${err.response.data.msg || err.response.statusText}`);
-      } else if (err.request) {
-        setError('Login failed: No response from server. Please try again.');
-      } else {
-        // Something happened in setting up the request that triggered an Error
-        setError(`Login failed: ${err.message}`);
-      }
+      setError('An error occurred. Please try again later.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
   return (
-    <div>
-      <h1>Login</h1>
-      {error && <p style={{color: 'red'}}>{error}</p>}
-      <form onSubmit={onSubmit}>
-        <div>
+    <div className={styles.loginContainer}>
+      <h1 className={styles.title}>Login</h1>
+      {error && <p className={styles.errorMessage}>{error}</p>}
+      <form onSubmit={onSubmit} className={styles.loginForm}>
+        <div className={styles.inputGroup}>
           <input
             type="email"
             placeholder="Email Address"
-            name="email"
             value={email}
-            onChange={onChange}
+            onChange={(e) => setEmail(e.target.value)}
             required
+            className={styles.inputField}
           />
         </div>
-        <div>
+        <div className={styles.inputGroup}>
           <input
-            type="password"
+            type={showPassword ? "text" : "password"}
             placeholder="Password"
-            name="password"
             value={password}
-            onChange={onChange}
-            minLength="6"
+            onChange={(e) => setPassword(e.target.value)}
             required
+            className={styles.inputField}
           />
+          <button 
+            type="button" 
+            onClick={togglePasswordVisibility}
+            className={styles.togglePassword}
+          >
+            {showPassword ? "Hide" : "Show"}
+          </button>
         </div>
-        <input type="submit" value="Login" />
+        <div className={styles.recaptchaContainer}>
+          <ReCAPTCHA
+            sitekey={process.env.REACT_APP_CAPTCHA_SITE_KEY}
+            onChange={(value) => {
+              setCaptchaValue(value);
+              setCaptchaError('');
+            }}
+          />
+          {captchaError && <p className={styles.errorMessage}>{captchaError}</p>}
+        </div>
+        <button type="submit" disabled={isLoading} className={styles.submitButton}>
+          {isLoading ? 'Logging in...' : 'Login'}
+        </button>
       </form>
-      <Link to="/forgot-password">Forgot Password?</Link>
+      <p className={styles.linkText}>Don't have an account? <Link to="/register" className={styles.link}>Register</Link></p>
+      <p className={styles.linkText}><Link to="/forgot-password" className={styles.link}>Forgot Password?</Link></p>  
     </div>
   );
 };

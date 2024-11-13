@@ -8,6 +8,22 @@ const Booking = require('../models/Booking');
 // Apply verifyToken middleware to all admin routes
 router.use(verifyToken);
 
+const getActiveBookings = async (userId = null) => { // utility function
+  const now = new Date();
+  const query = {
+    start: { $lte: now },
+    end: { $gte: now }
+  };
+  
+  if (userId) {
+    query.user = userId;
+  }
+  
+  return await Booking.find(query)
+    .populate('user', 'name email')
+    .sort({ start: 1 });
+};
+
 // GET /api/admin/conflicts
 router.get('/conflicts', async (req, res) => {
   try {
@@ -125,7 +141,9 @@ router.get('/bookings', async (req, res) => {
 
 // GET /api/admin/stats
 router.get('/stats', async (req, res) => {
+  const now = new Date();
   try {
+    const activeBookings = await getActiveBookings(now);
     const totalUsers = await User.countDocuments();
     const pendingUsers = await User.countDocuments({ isConfirmed: true, isApproved: false });
     const totalBookings = await Booking.countDocuments();
