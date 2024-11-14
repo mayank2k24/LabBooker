@@ -1,6 +1,6 @@
 # LABBOOKER
 
-labbooker.mayankgroup.tech
+[LabBooker] (https://labbooker.mayankgroup.tech)
 
 ## Overview
 This advanced booking system is designed to efficiently manage resource reservations with features like conflict resolution, user approval, and high-performance data handling using Redis.
