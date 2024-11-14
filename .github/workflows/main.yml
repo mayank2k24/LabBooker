@@ -24,7 +24,7 @@ jobs:
           ls -la src/Frontend/client
 
       - name: Install Dependencies
-        working-directory: src/Frontend/client
+        working-directory: ./src/Frontend/client
         run: |
           echo "Running npm install..."
           npm install --legacy-peer-deps
@@ -33,7 +33,7 @@ jobs:
           cat package.json
 
       - name: Build Frontend
-        working-directory: src/Frontend/client
+        working-directory: ./src/Frontend/client
         env:
           CI: false
         run: |
@@ -50,6 +50,6 @@ jobs:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "src/Frontend/client"
+          app_location: "./src/Frontend/client"
           output_location: "build"
           skip_app_build: true
