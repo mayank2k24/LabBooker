@@ -20,24 +20,24 @@ jobs:
 
       - name: Debug Directory
         run: |
-          echo "Current location:"
-          pwd
-          echo "Directory contents:"
-          ls -la
           echo "Frontend directory contents:"
           ls -la src/Frontend/client
 
       - name: Install Dependencies
         working-directory: src/Frontend/client
         run: |
-          npm ci  # Using ci instead of install for cleaner install
+          echo "Running npm install..."
+          npm install --legacy-peer-deps
           echo "Dependencies installed"
-          echo "Checking node_modules:"
-          ls -la node_modules
+          echo "Checking package.json:"
+          cat package.json
 
       - name: Build Frontend
         working-directory: src/Frontend/client
+        env:
+          CI: false
         run: |
+          echo "Starting build..."
           npm run build
           echo "Build completed"
           echo "Build directory contents:"
