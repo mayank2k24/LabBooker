@@ -104,9 +104,10 @@ app.use((req, res, next) => {
 
 // Production error handling
 if (process.env.NODE_ENV === 'production') {
-  app.use((err, req, res, next) => {
+  app.use((err,res, next) => {
     console.error(err.stack);
     res.status(500).send('Something broke!');
+    next();
   });
 }
 
