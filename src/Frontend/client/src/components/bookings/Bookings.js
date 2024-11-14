@@ -12,7 +12,7 @@ import styles from "./Bookings.module.css";
 import BookingCalendar from "./BookingCalendar";
 import EditBooking from "./EditBooking";
 import UndoFooter from '../utils/UndoFooter';
-import { createBooking } from './BookingConflict.js';
+import { createBooking } from './BookingConflict';
 import HelpIcon from '../HelpIcon.js';
 
 export default function Bookings() {
