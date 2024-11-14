@@ -27,6 +27,8 @@ const BookingSchema = new mongoose.Schema({
     type:Date,
     default:Date.now
   }
-},{timestamps:true});
+},{timestamps:true,
+  collection:'bookings'
+});
 
 module.exports = mongoose.model('Booking', BookingSchema);

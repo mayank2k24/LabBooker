@@ -16,27 +16,39 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN || "http://localhost:3000",
-    credentials: true,
+    origin: ['https://labbooker.mayankgroup.tech', 'http://localhost:3000'],
+    credentials: true
   })
 );
 app.use(bodyParser.json());
 app.use(logoutTimer);
 axios.defaults.baseURL = process.env.AXIOS_BASE_URL || "http://localhost:5000";
 axios.defaults.headers.post["Content-Type"] = "application/json";
-
 // Connect to MongoDB
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
     serverSelectionTimeoutMS: 5000,
+    retryWrites: false,
     socketTimeoutMS: 45000,
+    tlsInsecure: false,
+    ssl: true,
   })
   .then(() => console.log("MongoDB connected"))
   .catch((err) => {
     console.log(err);
   });
+  
+  mongoose.connection.once('open', async () => {
+    try {
+        // Test the connection
+        await mongoose.connection.db.admin().ping();
+        console.log('Database connected and responding');
+    } catch (error) {
+        console.error('Database connection test failed:', error);
+    }
+});
 
 app.use((req, res, next) => {
   console.log(`Debug: Received request - ${req.method} ${req.path}`);
