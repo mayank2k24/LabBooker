@@ -1,6 +1,4 @@
 node_modules/
-package-lock.json
-package.json
 docs
 .env*
 src/Frontend/client/node_modules/

@@ -1,0 +1,57 @@
+{
+  "name": "client",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@testing-library/jest-dom": "^5.17.0",
+    "@testing-library/react": "^13.4.0",
+    "@testing-library/user-event": "^13.5.0",
+    "axios": "^1.7.2",
+    "date-fns": "^3.6.0",
+    "jwt-decode": "^4.0.0",
+    "moment": "^2.30.1",
+    "react": "^18.3.1",
+    "react-big-calendar": "^1.13.1",
+    "react-calendar": "^5.0.0",
+    "react-datepicker": "^7.3.0",
+    "react-dom": "^18.3.1",
+    "react-router-dom": "^6.25.1",
+    "react-scripts": "5.0.1",
+    "web-vitals": "^2.1.4",
+    "yup": "^1.4.0"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "CI=false react-scripts build",
+    "deploy":"npm run build && az static webapp deploy",
+    "eject": "react-scripts eject",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:e2e": "cypress run"
+  },
+  "proxy": "http://localhost:5000",
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browser": {
+    "fs": false,
+    "os": false,
+    "path": false
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}
