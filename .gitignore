@@ -2,7 +2,7 @@ node_modules/
 package-lock.json
 package.json
 docs
-.env
+.env*
 src/Frontend/client/node_modules/
 src/Frontend/client/build/
 /node_modules/

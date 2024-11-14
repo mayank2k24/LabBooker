@@ -1,0 +1,14 @@
+{
+    "navigationFallback": {
+      "rewrite": "/index.html",
+      "exclude": ["/images/*.{png,jpg,gif}", "/css/*", "/js/*"]
+    },
+    "globalHeaders": {
+      "Content-Security-Policy": "default-src 'self'; connect-src 'self' https://your-backend-azure-app.azurewebsites.net; style-src 'self' 'unsafe-inline';",
+      "X-Frame-Options": "DENY",
+      "X-Content-Type-Options": "nosniff"
+    },
+    "mimeTypes": {
+      ".json": "text/json"
+    }
+  }

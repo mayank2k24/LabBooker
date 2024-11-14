@@ -12,14 +12,17 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(
-  cors({
-    origin: ['https://labbooker.mayankgroup.tech', 'http://localhost:3000'],
-    credentials: true
-  })
-);
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
+app.use(cors({
+  origin: process.env.NODE_ENV === 'production' 
+    ? ['https://labbooker.mayankgroup.tech']
+    : ['http://localhost:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
+
 app.use(bodyParser.json());
 app.use(logoutTimer);
 axios.defaults.baseURL = process.env.AXIOS_BASE_URL || "http://localhost:5000";
@@ -39,7 +42,7 @@ mongoose
   .catch((err) => {
     console.log(err);
   });
-  
+
   mongoose.connection.once('open', async () => {
     try {
         // Test the connection
@@ -81,6 +84,14 @@ app.use((err, req, res, next) => {
   res.status(500).json({ msg: "Server Error", error: err.message });
 });
 
+// Add security headers
+app.use((req, res, next) => {
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  next();
+});
+
 app.use((req, res, next) => {
   if (req.tokenNearExpiry) {
     const newToken = jwt.sign({ user: req.user }, process.env.JWT_SECRET, {
@@ -90,6 +101,14 @@ app.use((req, res, next) => {
   }
   next();
 });
+
+// Production error handling
+if (process.env.NODE_ENV === 'production') {
+  app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
+  });
+}
 
 scheduleBookingUpdates();
 
