@@ -1,11 +1,12 @@
 name: Deploy Frontend to Azure Static Web Apps
 
 on:
+  # Runs on any push to main
   push:
     branches:
       - main
-    paths:
-      - 'src/Frontend/client/**'
+  # Runs on manual trigger
+  workflow_dispatch:
 
 jobs:
   build_and_deploy_job:
@@ -13,6 +14,17 @@ jobs:
     name: Build and Deploy Frontend
     steps:
       - uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Dependencies
+        working-directory: src/Frontend/client
+        run: |
+          npm install
+          npm run build
 
       - name: Build And Deploy
         id: builddeploy
@@ -23,4 +35,4 @@ jobs:
           action: "upload"
           app_location: "src/Frontend/client"
           output_location: "build"
-          app_build_command: "CI=false npm run build"
+          skip_app_build: false
