@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-export const createBooking = async (bookingData) => {
+export  async function createBooking(bookingData) {
   console.log('Attempting to create booking with data:', bookingData);
   const maxRetries = 3;
   let retries = 0;
@@ -23,4 +23,7 @@ export const createBooking = async (bookingData) => {
   }
 
   throw new Error('Failed to create booking after multiple attempts');
-};
+}
+
+export default createBooking;
+
