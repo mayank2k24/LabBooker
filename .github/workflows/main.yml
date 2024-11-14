@@ -16,28 +16,40 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: 'src/Frontend/client/package-lock.json'
+          node-version: '20'
+
+      - name: Debug Directory
+        run: |
+          echo "Current location:"
+          pwd
+          echo "Directory contents:"
+          ls -la
+          echo "Frontend directory contents:"
+          ls -la src/Frontend/client
 
       - name: Install Dependencies
         working-directory: src/Frontend/client
         run: |
-          echo "Current directory:"
-          pwd
-          echo "Directory contents:"
-          ls -la
-          npm install
+          npm ci  # Using ci instead of install for cleaner install
+          echo "Dependencies installed"
+          echo "Checking node_modules:"
+          ls -la node_modules
 
-      - name: Build And Deploy
+      - name: Build Frontend
+        working-directory: src/Frontend/client
+        run: |
+          npm run build
+          echo "Build completed"
+          echo "Build directory contents:"
+          ls -la build
+
+      - name: Deploy to Azure
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
-          app_location: "src/Frontend/client"   
-          output_location: "build"              
-          app_build_command: "npm run build"    
-          skip_app_build: false
-          deployment_environment: production
+          app_location: "src/Frontend/client"
+          output_location: "build"
+          skip_app_build: true
