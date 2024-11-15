@@ -1,21 +1,33 @@
 {
   "routes": [
     {
+      "route": "/static/*",
+      "headers": {
+        "cache-control": "must-revalidate, max-age=31536000"
+      }
+    },
+    {
       "route": "/*",
       "headers": {
-        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; frame-src 'self' https://www.google.com/recaptcha/; style-src 'self' 'unsafe-inline' https://ray.st https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' %REACT_APP_API_URL%; img-src 'self' data: https:;",
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; frame-src 'self' https://www.google.com/recaptcha/; style-src 'self' 'unsafe-inline' https://ray.st https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com https://ray.st data:; connect-src 'self' https://*.azurestaticapps.net https://*.azurewebsites.net; img-src 'self' data: https:;",
         "X-Frame-Options": "DENY",
         "X-Content-Type-Options": "nosniff"
-      },
-      "rewrite": "/index.html"
+      }
     }
   ],
   "globalHeaders": {
-    "Access-Control-Allow-Origin": "%REACT_APP_CLIENT_URL%",
+    "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS"
-  } ,
+  },
+  "mimeTypes": {
+    ".js": "application/javascript",
+    ".css": "text/css",
+    ".json": "application/json",
+    ".woff": "font/woff",
+    ".woff2": "font/woff2"
+  },
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/images/*.{png,jpg,gif}", "/css/*", "/api/*"]
+    "exclude": ["/images/*.{png,jpg,gif}", "/css/*", "/js/*", "/static/*"]
   }
-    }  
+}
