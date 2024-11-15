@@ -3,18 +3,22 @@
     {
       "route": "/*",
       "headers": {
-        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; frame-src 'self' https://www.google.com/recaptcha/; style-src 'self' 'unsafe-inline'; connect-src 'self' https://labbooker.mayankroup.tech; img-src 'self' data: https:;",
+        "Content-Security-Policy": "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; frame-src 'self' https://www.google.com/recaptcha/; style-src 'self' 'unsafe-inline' https://ray.st https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; connect-src 'self' %REACT_APP_API_URL%; img-src 'self' data: https:;",
         "X-Frame-Options": "DENY",
-        "X-Content-Type-Options": "nosniff",
-        "Referrer-Policy": "strict-origin-when-cross-origin"
+        "X-Content-Type-Options": "nosniff"
       },
-      "methods": ["GET", "POST", "PUT", "DELETE"]
+      "rewrite": "/index.html"
+    },
+    {
+      "route": "/api/*",
+      "rewrite": "%REACT_APP_API_URL%/api/:splat"
     }
   ],
-  "navigationFallback": {
-    "rewrite": "/index.html"
+  "platform": {
+    "apiRuntime": "node:18"
   },
-  "mimeTypes": {
-    ".json": "text/json"
-  }
-}
+  "globalHeaders": {
+    "Access-Control-Allow-Origin": "%REACT_APP_CLIENT_URL%",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS"
+  } 
+    }  
