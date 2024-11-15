@@ -53,5 +53,6 @@ jobs:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           action: "upload"
           app_location: "src/Frontend/client"
-          output_location: "src/Frontend/client/build"
-          skip_app_build: true
+          output_location: "build"
+          skip_app_build: false
+          app_build_command: "npm run build"
