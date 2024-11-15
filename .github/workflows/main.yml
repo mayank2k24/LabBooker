@@ -34,16 +34,20 @@ jobs:
 
       - name: Build Frontend
         working-directory: src/Frontend/client
-        env:
-          CI: false
         run: |
-          echo "Starting build..."
-          npm run build
-          echo "Build completed"
-          echo "Build directory contents:"
-          ls -la build
-          echo "Index.html contents:"
+          echo "Starting manual build process..."
+          npm install
+          CI=false npm run build
+          echo "Build complete. Checking build directory:"
+          ls -la build/
+          echo "Checking index.html exists:"
           cat build/index.html
+
+      - name: Verify Build Location
+        run: |
+          echo "Current directory structure:"
+          pwd
+          ls -la src/Frontend/client/build/
 
       - name: Deploy to Azure
         id: builddeploy
@@ -54,5 +58,4 @@ jobs:
           action: "upload"
           app_location: "src/Frontend/client"
           output_location: "build"
-          skip_app_build: false
-          app_build_command: "npm run build"
+          skip_app_build: true
