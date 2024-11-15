@@ -11,14 +11,21 @@
     },
     {
       "route": "/api/*",
-      "rewrite": "%REACT_APP_API_URL%/api/:splat"
+      "rewrite": "%REACT_APP_API_URL%/api/:splat",
+      "headers": {
+        "Content-Security-Policy": "default-src 'self'; connect-src 'self' %REACT_APP_API_URL%;"
+      }
     }
   ],
   "platform": {
-    "apiRuntime": "node:18"
+    "apiRuntime": "node:20"
   },
   "globalHeaders": {
     "Access-Control-Allow-Origin": "%REACT_APP_CLIENT_URL%",
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS"
-  } 
+  } ,
+  "navigationFallback": {
+    "rewrite": "/index.html",
+    "exclude": ["/images/*.{png,jpg,gif}", "/css/*", "/api/*"]
+  }
     }  
