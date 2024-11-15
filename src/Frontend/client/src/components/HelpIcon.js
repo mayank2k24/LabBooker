@@ -18,7 +18,7 @@ const HelpIcon = () => {
     }
     const subject = encodeURIComponent('Help Request');
     const body = encodeURIComponent(`Name: ${name}\nEmail: ${email}\n\nDescription: ${description}`);
-    window.location.href = `mailto:help@labbooker.mayankgroup.tech?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:help@mail.labbooker.mayankgroup.tech?subject=${subject}&body=${body}`;
     setIsOpen(false);
     setName('');
     setEmail('');
