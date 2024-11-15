@@ -38,3 +38,4 @@ jobs:
           output_location: "build"
           skip_app_build: false
           app_build_command: "npm run build"
+          config_file_location: "src/Frontend/client"

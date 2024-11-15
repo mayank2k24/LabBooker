@@ -1,4 +1,4 @@
-import React from "react";
+import React,{useEffect} from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -25,6 +25,11 @@ import { BookingProvider } from "./context/BookingContext";
 import "./App.css";
 
 function App() {
+
+  useEffect(() => {
+    document.title = "LabBooker";
+  }, []);
+
   return (
     <BookingProvider>
       <AuthProvider>
