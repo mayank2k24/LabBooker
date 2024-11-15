@@ -2,30 +2,97 @@ version: '3.8'
 
 services:
   frontend:
-    build: ./src/Frontend/client
+    build: 
+      context: ./src/Frontend/client
+      dockerfile: Dockerfile
+    image: frontend:node20
     ports:
       - "3000:80"
     environment:
-      - REACT_APP_API_URL=http://localhost:5000
+      - NODE_ENV=production
+    secrets:
+      - REACT_APP_API_URL
+      - REACT_APP_CAPTCHA_SITE_KEY
     depends_on:
       - backend
 
   backend:
-    build: ./src/Backend-API
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    image: backend:node20
     ports:
       - "5000:5000"
     environment:
-      - MONGODB_URI=${MONGODB_URI}
-      - JWT_SECRET=${JWT_SECRET}
+      - NODE_ENV=production
+      - PORT=5000
+    secrets:
+      - MONGODB_URI
+      - MAILGUN_SMTP_USERNAME
+      - MAILGUN_SMTP_PASSWORD
+      - MAILGUN_SMTP_SERVER
+      - MAILGUN_SMTP_EMAIL_FROM
+      - MAILGUN_SMTP_PORT
+      - JWT_SECRET
+      - REDIS_HOST
+      - REDIS_PORT
+      - REDIS_PASSWORD
+      - REDIS_TLS
+      - MAILGUN_API_KEY
+      - MAILGUN_DOMAIN
+      - CORS_ORIGIN
+      - HELP_MAIL
+      - CAPTCHA_SECRET_KEY
     depends_on:
-      - mongodb
+      - redis
 
-  mongodb:
-    image: mongo:latest
+  redis:
+    image: redis:alpine
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     ports:
-      - "27017:27017"
+      - "6379:6379"
     volumes:
-      - mongodb_data:/data/db
+      - redis_data:/data
+    secrets:
+      - REDIS_PASSWORD
+
+secrets:
+  MONGODB_URI:
+    file: ./secrets/mongodb_uri.txt
+  MAILGUN_SMTP_USERNAME:
+    file: ./secrets/mailgun_smtp_username.txt
+  MAILGUN_SMTP_PASSWORD:
+    file: ./secrets/mailgun_smtp_password.txt
+  MAILGUN_SMTP_SERVER:
+    file: ./secrets/mailgun_smtp_server.txt
+  MAILGUN_SMTP_EMAIL_FROM:
+    file: ./secrets/mailgun_smtp_email_from.txt
+  MAILGUN_SMTP_PORT:
+    file: ./secrets/mailgun_smtp_port.txt
+  JWT_SECRET:
+    file: ./secrets/jwt_secret.txt
+  REDIS_HOST:
+    file: ./secrets/redis_host.txt
+  REDIS_PORT:
+    file: ./secrets/redis_port.txt
+  REDIS_PASSWORD:
+    file: ./secrets/redis_password.txt
+  REDIS_TLS:
+    file: ./secrets/redis_tls.txt
+  MAILGUN_API_KEY:
+    file: ./secrets/mailgun_api_key.txt
+  MAILGUN_DOMAIN:
+    file: ./secrets/mailgun_domain.txt
+  CORS_ORIGIN:
+    file: ./secrets/cors_origin.txt
+  HELP_MAIL:
+    file: ./secrets/help_mail.txt
+  CAPTCHA_SECRET_KEY:
+    file: ./secrets/captcha_secret_key.txt
+  REACT_APP_API_URL:
+    file: ./secrets/react_app_api_url.txt
+  REACT_APP_CAPTCHA_SITE_KEY:
+    file: ./secrets/react_app_captcha_site_key.txt
 
 volumes:
-  mongodb_data:
+  redis_data:

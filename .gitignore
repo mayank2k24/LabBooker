@@ -8,4 +8,4 @@ src/Frontend/client/build/
 .deepsource.toml
 newrelic_agent.log
 .vscode
-
+secrets/
