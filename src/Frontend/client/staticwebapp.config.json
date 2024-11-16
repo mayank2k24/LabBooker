@@ -4,20 +4,23 @@
       "route": "/api/*",
       "rewrite": "https://labbooker-exgab5hvc0cebfda.eastus-01.azurewebsites.net/api/*",
       "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+      "allowedRoles": ["anonymous"],
       "headers": {
-        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Origin": "https://labbooker.mayankgroup.tech",
         "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization"
+        "Access-Control-Allow-Headers": "Content-Type, Authorization",
+        "Access-Control-Allow-Credentials": "true"
       }
-    },
-    {
-      "route": "/*",
-      "serve": "/index.html",
-      "statusCode": 200
     }
   ],
-  "navigationFallback": {
-    "rewrite": "/index.html",
-    "exclude": ["/static/*", "/manifest.json", "/favicon.ico"]
+  "platform": {
+    "apiRuntime": "node:18"
+  },
+  "customDomains": {
+    "labbooker.mayankgroup.tech": {
+      "certificate": {
+        "source": "staticwebapp"
+      }
+    }
   }
 }

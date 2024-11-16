@@ -16,27 +16,20 @@ const PORT = process.env.PORT;
 
 // Middleware
 const corsOptions = {
-  origin: process.env.NODE_ENV === 'production'
-    ? [process.env.CORS_ORIGIN]
-    : ['http://localhost:3000'],
+  origin: [
+    'https://labbooker.mayankgroup.tech',
+    'https://gentle-mushroom-0ea6a940f.5.azurestaticapps.net',
+    'http://localhost:3000'
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  credentials: true,
+  maxAge: 86400 // 24 hours
 };
+
 app.use(cors(corsOptions));
 
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
-  
-  // Handle preflight
-  if (req.method === 'OPTIONS') {
-      return res.status(200).end();
-  }
-  
-  next();
-});
+app.options('*', cors(corsOptions));
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
@@ -110,7 +103,6 @@ app.use("/api/bookings", require("./routes/bookings"));
 app.use("/api/admin", require("./routes/Conflicts"));
 app.use("/api/users", require("./routes/auth"));
 
-app.options('*', cors(corsOptions));
 
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);
