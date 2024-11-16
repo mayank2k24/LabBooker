@@ -10,32 +10,33 @@ require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT;
-const NODE_ENV = process.env.NODE_ENV || 'development';
-const FRONTEND_URL = process.env.FRONTEND_URL || (
-  NODE_ENV === 'development' 
-    ? 'http://localhost:3000'
-    : 'https://labbooker.mayankgroup.tech'
-);
 
-  // logging
-  console.log('Current Environment:', {
-    NODE_ENV,
-    PORT,
-    FRONTEND_URL,
-    MONGODB_URI: process.env.MONGODB_URI || 'Not Set',
-    JWT_SECRET: process.env.JWT_SECRET ? 'Set' : 'Not Set'
-  });
+
+
 
 // Middleware
 const corsOptions = {
   origin: process.env.NODE_ENV === 'production'
-    ? ['https://labbooker.mayankgroup.tech']
+    ? [process.env.CORS_ORIGIN]
     : ['http://localhost:3000'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
 };
 app.use(cors(corsOptions));
+
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  
+  // Handle preflight
+  if (req.method === 'OPTIONS') {
+      return res.status(200).end();
+  }
+  
+  next();
+});
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
