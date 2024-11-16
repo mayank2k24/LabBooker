@@ -1,8 +1,13 @@
 {
   "routes": [
     {
+      "route": "/static/*",
+      "headers": {
+        "cache-control": "must-revalidate, max-age=15770000"
+      }
+    },
+    {
       "route": "/api/*",
-      "allowedRoles": ["anonymous"],
       "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       "headers": {
         "Access-Control-Allow-Origin": "*",
@@ -12,12 +17,22 @@
     },
     {
       "route": "/*",
-      "rewrite": "/index.html",
-      "allowedRoles": ["anonymous"]
+      "serve": "/index.html",
+      "statusCode": 200,
+      "headers": {
+        "Content-Type": "text/html"
+      }
     }
   ],
   "navigationFallback": {
     "rewrite": "/index.html",
-    "exclude": ["/api/*", "/static/*", "/images/*", "/assets/*"]
+    "exclude": ["/static/*", "/manifest.json", "/favicon.ico"]
+  },
+  "mimeTypes": {
+    ".json": "application/json",
+    ".js": "application/javascript",
+    ".css": "text/css",
+    ".html": "text/html",
+    ".ico": "image/x-icon"
   }
 }
