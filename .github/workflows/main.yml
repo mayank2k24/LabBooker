@@ -41,3 +41,4 @@ jobs:
           config_file_location: "src/Frontend/client"
         env:
           REACT_APP_CAPTCHA_SITE_KEY: ${{ secrets.REACT_APP_CAPTCHA_SITE_KEY }}
+          REACT_APP_API_URL: ${{ secrets.REACT_APP_API_URL }}

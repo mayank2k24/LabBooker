@@ -43,6 +43,7 @@ services:
       - CORS_ORIGIN
       - HELP_MAIL
       - CAPTCHA_SECRET_KEY
+      - AXIOS_BASE_URL
     depends_on:
       - redis
 
@@ -89,6 +90,8 @@ secrets:
     file: ./secrets/help_mail.txt
   CAPTCHA_SECRET_KEY:
     file: ./secrets/captcha_secret_key.txt
+  AXIOS_BASE_URL:
+    file: ./secrets/axios_base_url.txt
   REACT_APP_API_URL:
     file: ./secrets/react_app_api_url.txt
   REACT_APP_CAPTCHA_SITE_KEY:
