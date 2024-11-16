@@ -3,6 +3,7 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
+
 const User = require('../models/User');
 const crypto = require('crypto');
 const {verifyToken,generateToken} = require('../middleware/auth');
@@ -33,7 +34,7 @@ router.post('/',async (req, res) => {
 
   try {
     // Verify CAPTCHA
-    const secretKey = process.env.REACT_APP_CAPTCHA_SECRET_KEY;
+    const secretKey = process.env.CAPTCHA_SECRET_KEY;
     const verifyURL = `https://www.google.com/recaptcha/api/siteverify`;
     const captchaResponse = await axios.post(verifyURL, null, {
       params: {
