@@ -27,10 +27,16 @@ const FRONTEND_URL = process.env.FRONTEND_URL || (
   });
 
 // Middleware
-app.use(cors({
-  origin: FRONTEND_URL, 
-  credentials: true,
-}));
+const corsOptions = {
+  origin: process.env.NODE_ENV === 'production'
+    ? ['https://labbooker.mayankgroup.tech']
+    : ['http://localhost:3000'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
+};
+app.use(cors(corsOptions));
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
@@ -102,11 +108,14 @@ app.get("/", (req, res) => {
   res.send("LabBooker API is running");
 });
 
+
 // Routes
 app.use("/api/auth", require("./routes/auth"));
 app.use("/api/bookings", require("./routes/bookings"));
 app.use("/api/admin", require("./routes/Conflicts"));
 app.use("/api/users", require("./routes/auth"));
+
+app.options('*', cors(corsOptions));
 
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.url}`);

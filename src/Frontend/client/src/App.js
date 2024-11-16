@@ -22,6 +22,8 @@ import ConflictResolution from "./components/bookings/ConflictResolution";
 import UserApproval from "./components/dashboard/UserApproval";
 import VisualBooking from "./components/bookings/VisualBooking";
 import { BookingProvider } from "./context/BookingContext";
+import ResetPassword from "./components/auth/ResetPassword";
+import ForgotPassword from "./components/auth/ForgotPassword";
 import "./App.css";
 
 function App() {
@@ -42,6 +44,8 @@ function App() {
                 {/* Public Routes */}
                 <Route path="/register" element={<Register />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/forgot-password" element={<ForgotPassword />} />
 
                 {/* Protected Routes for Authenticated Users */}
                 <Route element={<PrivateRoute />}>
