@@ -62,11 +62,6 @@ const mongooseOptions = IS_COSMOS
       useUnifiedTopology: true
     };
 
-    console.log('MongoDB Connection:', {
-      isDevelopment: NODE_ENV === 'development',
-      isCosmos: IS_COSMOS,
-      usingURI: process.env.MONGO_URI.split('@')[1] || 'localhost'
-    });
 
 mongoose.connect(process.env.MONGO_URI, mongooseOptions)
   .then(() => {
