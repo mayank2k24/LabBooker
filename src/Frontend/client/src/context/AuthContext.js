@@ -3,15 +3,7 @@ import axios from 'axios';
 
 export const AuthContext = createContext();
 
-const API_URL = process.env.REACT_APP_API_URL;
-const isDevelopment = process.env.NODE_ENV === 'development';
-axios.defaults.baseURL = API_URL;
 axios.defaults.withCredentials = true;
-
-if (isDevelopment) {
-  console.log('Environment:', process.env.NODE_ENV);
-  console.log('API URL:', API_URL); 
-}
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
