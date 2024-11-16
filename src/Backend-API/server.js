@@ -43,7 +43,6 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 app.use(bodyParser.json());
 app.use(logoutTimer);
-axios.default.baseURL = process.env.AXIOS_BASE_URL || "http://localhost:5000";
 axios.default.headers.post["Content-Type"] = "application/json";
 
 // Connect to MongoDB

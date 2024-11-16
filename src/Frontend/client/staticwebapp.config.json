@@ -1,13 +1,8 @@
 {
   "routes": [
     {
-      "route": "/static/*",
-      "headers": {
-        "cache-control": "must-revalidate, max-age=15770000"
-      }
-    },
-    {
       "route": "/api/*",
+      "rewrite": "https://labbooker-exgab5hvc0cebfda.eastus-01.azurewebsites.net/api/*",
       "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
       "headers": {
         "Access-Control-Allow-Origin": "*",
@@ -18,21 +13,11 @@
     {
       "route": "/*",
       "serve": "/index.html",
-      "statusCode": 200,
-      "headers": {
-        "Content-Type": "text/html"
-      }
+      "statusCode": 200
     }
   ],
   "navigationFallback": {
     "rewrite": "/index.html",
     "exclude": ["/static/*", "/manifest.json", "/favicon.ico"]
-  },
-  "mimeTypes": {
-    ".json": "application/json",
-    ".js": "application/javascript",
-    ".css": "text/css",
-    ".html": "text/html",
-    ".ico": "image/x-icon"
   }
 }

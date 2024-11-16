@@ -34,7 +34,6 @@
     "test:coverage": "jest --coverage",
     "test:e2e": "cypress run"
   },
-  "proxy": "http://localhost:5000",
   "eslintConfig": {
     "extends": [
       "react-app",
