@@ -154,6 +154,13 @@ if (process.env.NODE_ENV === 'production') {
   });
 }
 
+app.use((req, res) => { //err 405 handling
+  res.status(405).json({
+    error: 'Method Not Allowed',
+    allowedMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+  });
+});
+
 scheduleBookingUpdates();
 
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

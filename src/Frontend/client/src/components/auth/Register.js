@@ -42,11 +42,14 @@ const Register = () => {
     }
   
     try {
-      const result = await register(name, email, passwordRef.current.value,confirmationToken,{captchaValue});
+      const result = await register(name, email, passwordRef.current.value,confirmationToken,{captcha:captchaValue});
+
       if (result.success) {
         setError('');
         alert('Registration successful. Please check your email to confirm your account.');
-        navigate('/login');
+        setTimeout(()=>{
+          navigate('/login');
+        },3000);
       } else {
         setError(result.message || 'Registration failed');
       }
