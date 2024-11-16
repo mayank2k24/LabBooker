@@ -10,37 +10,71 @@ require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT;
+const NODE_ENV = process.env.NODE_ENV || 'development';
+const FRONTEND_URL = process.env.FRONTEND_URL || (
+  NODE_ENV === 'development' 
+    ? 'http://localhost:3000'
+    : 'https://labbooker.mayankgroup.tech'
+);
+
+  // logging
+  console.log('Current Environment:', {
+    NODE_ENV,
+    PORT,
+    FRONTEND_URL,
+    MONGODB_URI: process.env.MONGODB_URI || 'Not Set',
+    JWT_SECRET: process.env.JWT_SECRET ? 'Set' : 'Not Set'
+  });
 
 // Middleware
+app.use(cors({
+  origin: FRONTEND_URL, 
+  credentials: true,
+}));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
-app.use(cors({
-  origin: process.env.NODE_ENV === 'production' 
-    ? ['https://labbooker.mayankgroup.tech']
-    : ['http://localhost:3000'],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
 
 app.use(bodyParser.json());
 app.use(logoutTimer);
 axios.defaults.baseURL = process.env.AXIOS_BASE_URL || "http://localhost:5000";
 axios.defaults.headers.post["Content-Type"] = "application/json";
+
 // Connect to MongoDB
-mongoose
-  .connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-    serverSelectionTimeoutMS: 5000,
-    retryWrites: false,
-    socketTimeoutMS: 45000,
-    tlsInsecure: false,
-    ssl: true,
+const IS_COSMOS = process.env.MONGO_URI.includes('cosmos.azure.com');
+const mongooseOptions = IS_COSMOS 
+  ? {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      retryWrites: false,
+      ssl: true,
+      tlsAllowInvalidCertificates: true,
+      directConnection: true
+    }
+  : {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    };
+
+    console.log('MongoDB Connection:', {
+      isDevelopment: NODE_ENV === 'development',
+      isCosmos: IS_COSMOS,
+      usingURI: process.env.MONGO_URI.split('@')[1] || 'localhost'
+    });
+
+mongoose.connect(process.env.MONGO_URI, mongooseOptions)
+  .then(() => {
+    console.log(`MongoDB Connected to ${IS_COSMOS ? 'Cosmos DB' : 'Local/Atlas MongoDB'}`);
   })
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => {
-    console.log(err);
+  .catch(err => {
+    console.error('MongoDB Connection Error:', {
+      message: err.message,
+      code: err.code,
+      reason: err.reason
+    });
+    // Don't exit in development
+    if (NODE_ENV === 'production') {
+      process.exit(1);
+    }
   });
 
   mongoose.connection.once('open', async () => {
