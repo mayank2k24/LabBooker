@@ -43,8 +43,8 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 app.use(bodyParser.json());
 app.use(logoutTimer);
-axios.defaults.baseURL = process.env.AXIOS_BASE_URL || "http://localhost:5000";
-axios.defaults.headers.post["Content-Type"] = "application/json";
+axios.default.baseURL = process.env.AXIOS_BASE_URL || "http://localhost:5000";
+axios.default.headers.post["Content-Type"] = "application/json";
 
 // Connect to MongoDB
 const IS_COSMOS = process.env.MONGO_URI.includes('cosmos.azure.com');
