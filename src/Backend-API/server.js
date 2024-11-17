@@ -55,8 +55,12 @@ const connectDB = async () => {
       useUnifiedTopology: true,
       retryWrites: false,
       tlsAllowInvalidCertificates: true,
-      serverSelectionTimeoutMS: 15000,
+      serverSelectionTimeoutMS: 30000,
       socketTimeoutMS: 45000,
+      connectTimeoutMS: 30000,
+      directConnection: true,
+      ssl: true,  
+      maxPoolSize: 100,
     });
 
     console.log('MongoDB Connected Successfully');
