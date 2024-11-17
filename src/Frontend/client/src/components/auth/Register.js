@@ -20,7 +20,7 @@ const Register = () => {
   const [captchaValue, setCaptchaValue] = useState(null);
   const captchaRef = useRef(null);
   const [captchaError, setCaptchaError] = useState('');
-
+  
   const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
 
 
@@ -48,7 +48,7 @@ const Register = () => {
     }
   
     try {
-      const result = await register(name, email, passwordRef.current.value,captchaValue);
+      const result = await register(name, email, passwordRef.current.value,null,captchaValue);
 
       if (result.success) {
         setError('');

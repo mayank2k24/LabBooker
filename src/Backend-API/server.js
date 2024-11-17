@@ -39,47 +39,40 @@ app.use(logoutTimer);
 
 
 // Connect to MongoDB
-const IS_COSMOS = process.env.MONGODB_URI.includes('cosmos.azure.com');
-const mongooseOptions = IS_COSMOS 
-  ? {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      retryWrites: false,
-      ssl: true,
-      tlsAllowInvalidCertificates: true,
-      directConnection: true
-    }
-  : {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    };
+// Add this at the top after requires
+console.log('Environment Variables Check:');
+console.log('MONGODB_URI exists:', !!process.env.MONGODB_URI);
+console.log('NODE_ENV:', process.env.NODE_ENV);
 
-
-mongoose.connect(process.env.MONGODB_URI, mongooseOptions)
-  .then(() => {
-    console.log(`MongoDB Connected to ${IS_COSMOS ? 'Cosmos DB' : 'Local/Atlas MongoDB'}`);
-  })
-  .catch(err => {
-    console.error('MongoDB Connection Error:', {
-      message: err.message,
-      code: err.code,
-      reason: err.reason
-    });
-    // Don't exit in development
-    if (NODE_ENV === 'production') {
-      process.exit(1);
+// Safe connection setup
+const connectDB = async () => {
+  try {
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGODB_URI is not defined in environment variables');
     }
-  });
 
-  mongoose.connection.once('open', async () => {
-    try {
-        // Test the connection
-        await mongoose.connection.db.admin().ping();
-        console.log('Database connected and responding');
-    } catch (error) {
-        console.error('Database connection test failed:', error);
-    }
-});
+    const IS_COSMOS = process.env.MONGODB_URI.includes('cosmos.azure.com');
+    const mongooseOptions = IS_COSMOS 
+      ? {
+          useNewUrlParser: true,
+          useUnifiedTopology: true,
+          retryWrites: false,
+          ssl: true,
+          tlsAllowInvalidCertificates: true,
+          directConnection: true
+        }
+      : {
+          useNewUrlParser: true,
+          useUnifiedTopology: true
+        };
+
+    await mongoose.connect(process.env.MONGODB_URI, mongooseOptions);
+    console.log('MongoDB Connected');
+  } catch (error) {
+    console.error('MongoDB Connection Error:', error);
+    process.exit(1);
+  }
+};
 
 app.use((req, res, next) => {
   console.log(`Debug: Received request - ${req.method} ${req.path}`);

@@ -27,8 +27,7 @@ router.get('/user', verifyToken , async (req, res,next) => {
 // @access  Public
 router.post('/',async (req, res) => {
   console.log('registration');
-  const { name, email, password } = req.body;
-  const captcha = req.body.captcha?.captcha; 
+  const { name, email, password, captcha } = req.body; 
   const normalizedEmail = normalizeEmail(email);
 
   try {
