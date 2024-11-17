@@ -1,19 +1,4 @@
 {
-  "routes": [
-    {
-      "route": "/api/*",
-      "serve": null,
-      "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-      "rewrite": "/api/{*}",
-      "allowedRoles": ["anonymous"],
-      "backendUri": "https://labbooker-exgab5hvc0cebfda.eastus-01.azurewebsites.net/api/*"
-    },
-    {
-      "route": "/*",
-      "serve": "/index.html",
-      "statusCode": 200
-    }
-  ],
   "auth": {
     "identityProviders": {
       "azureActiveDirectory": null,
