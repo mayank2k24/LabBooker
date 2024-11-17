@@ -4,8 +4,9 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'Backend-API/**'
-      - './**'
+      - 'src/Backend-API/**'    # Updated path
+      - 'package.json'          # Added
+      - 'Dockerfile'            # Added
       - '.github/workflows/deploy-docker.yml'
 
 jobs:
@@ -28,10 +29,7 @@ jobs:
     - name: Build and push
       uses: docker/build-push-action@v2
       with:
-        context: .
-        file: ./Dockerfile
+        context: .                # This is correct as Dockerfile is in root
+        file: ./Dockerfile        # This is correct
         push: true
         tags: masharma2004/labbooker-backend:latest
-        
-    - name: Image digest
-      run: echo ${{ steps.docker_build.outputs.digest }}
