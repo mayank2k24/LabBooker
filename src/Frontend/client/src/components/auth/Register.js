@@ -10,7 +10,7 @@ const Register = () => {
     email: '',
   });
 
-  const { name, email, confirmationToken } = formData;
+  const { name, email} = formData;
   const { register } = useContext(AuthContext);
   const navigate= useNavigate();
   const [error, setError] = useState('');

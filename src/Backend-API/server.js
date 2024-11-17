@@ -46,6 +46,7 @@ const mongooseOptions = IS_COSMOS
       useUnifiedTopology: true,
       retryWrites: false,
       ssl: true,
+      dbName: "LabBooker",
       tlsAllowInvalidCertificates: true,
       directConnection: true
     }
