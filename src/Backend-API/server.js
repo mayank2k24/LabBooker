@@ -44,35 +44,45 @@ console.log('Environment Variables Check:');
 console.log('MONGODB_URI exists:', !!process.env.MONGODB_URI);
 console.log('NODE_ENV:', process.env.NODE_ENV);
 
-// Safe connection setup
 const connectDB = async () => {
   try {
     if (!process.env.MONGODB_URI) {
-      throw new Error('MONGODB_URI is not defined in environment variables');
+      throw new Error('MONGODB_URI is not defined');
     }
 
-    const IS_COSMOS = process.env.MONGODB_URI.includes('cosmos.azure.com');
-    const mongooseOptions = IS_COSMOS 
-      ? {
-          useNewUrlParser: true,
-          useUnifiedTopology: true,
-          retryWrites: false,
-          ssl: true,
-          tlsAllowInvalidCertificates: true,
-          directConnection: true
-        }
-      : {
-          useNewUrlParser: true,
-          useUnifiedTopology: true
-        };
+    await mongoose.connect(process.env.MONGODB_URI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 15000, // Timeout after 15s instead of 30s
+      socketTimeoutMS: 45000, // Close sockets after 45s
+    });
 
-    await mongoose.connect(process.env.MONGODB_URI, mongooseOptions);
-    console.log('MongoDB Connected');
-  } catch (error) {
-    console.error('MongoDB Connection Error:', error);
+    console.log('MongoDB Connected Successfully');
+
+    // Handle connection errors after initial connection
+    mongoose.connection.on('error', err => {
+      console.error('MongoDB connection error:', err);
+    });
+
+    mongoose.connection.on('disconnected', () => {
+      console.log('MongoDB disconnected. Attempting to reconnect...');
+    });
+
+  } catch (err) {
+    console.error('MongoDB connection error:', err);
     process.exit(1);
   }
 };
+
+// Call connect before starting express
+connectDB().then(() => {
+  app.listen( () => {
+    console.log(`mongo Server running`);
+  });
+}).catch(err => {
+  console.error('Failed to connect to MongoDB:', err);
+  process.exit(1);
+});
 
 app.use((req, res, next) => {
   console.log(`Debug: Received request - ${req.method} ${req.path}`);
