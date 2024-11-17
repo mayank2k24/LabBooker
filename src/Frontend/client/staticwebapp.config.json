@@ -3,24 +3,21 @@
     {
       "route": "/api/*",
       "serve": null,
-      "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-      "rewrite": "/api/{*}",
       "allowedRoles": ["anonymous"],
       "backendUri": "https://labbooker-exgab5hvc0cebfda.eastus-01.azurewebsites.net/api/*"
-    },
-    {
-      "route": "/*",
-      "serve": "/index.html",
-      "statusCode": 200
     }
   ],
   "auth": {
     "identityProviders": {
       "azureActiveDirectory": null,
-      "azureStaticWebApps": null
+      "azureStaticWebApps": null,
+      "customOpenIdConnectProviders": {}
     }
   },
-  "navigationFallback": {
-    "rewrite": "/index.html"
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/index.html",
+      "statusCode": 200
+    }
   }
 }
