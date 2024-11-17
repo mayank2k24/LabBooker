@@ -48,14 +48,9 @@ async function connectDB() {
     const options = {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      retryWrites: false,
-      ssl: true,
-      tlsAllowInvalidCertificates: true,
-      maxIdleTimeMS: 120000,
-      authMechanism: 'SCRAM-SHA-256',
-      dbName: 'labbooker-db',  // Specify database name
-      authSource: 'admin',
-      directConnection: true
+      dbName: 'LabBooker',
+      retryWrites: true,
+      w: 'majority'
     };
 
     // Clean up connection string
