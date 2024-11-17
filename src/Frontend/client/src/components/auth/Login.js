@@ -34,7 +34,7 @@ const Login = () => {
     }
     
     try {
-      const result = await login(email, password, captchaValue);
+      const result = await login(email, password,{captcha:captchaValue});
       if (result.success) {
         if (isAdmin) {
           navigate("/admin");

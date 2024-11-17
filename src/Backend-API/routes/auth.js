@@ -36,8 +36,6 @@ router.post('/',async (req, res) => {
     const secretKey = process.env.CAPTCHA_SECRET_KEY;
     const verifyURL = `https://www.google.com/recaptcha/api/siteverify`;
 
- 
-
     const captchaResponse = await axios.post(verifyURL, null, {
       params: {
         secret: secretKey,
@@ -240,6 +238,8 @@ router.post('/login',async (req, res) => {
         response: captcha
       }
     });
+
+    console.log('reCAPTCHA response:', captchaResponse.data); 
 
     if (!captchaResponse.data.success) {
       return res.status(400).json({
