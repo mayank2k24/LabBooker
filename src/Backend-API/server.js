@@ -38,57 +38,51 @@ app.use(bodyParser.json());
 app.use(logoutTimer);
 
 
-// Connect to MongoDB
-// Add this at the top after requires
-console.log('Environment Variables Check:');
-console.log('MONGODB_URI exists:', !!process.env.MONGODB_URI);
-console.log('NODE_ENV:', process.env.NODE_ENV);
-
-const connectDB = async () => {
+async function connectDB() {
   try {
     if (!process.env.MONGODB_URI) {
       throw new Error('MONGODB_URI is not defined');
     }
 
-    await mongoose.connect(process.env.MONGODB_URI, {
+    // Cosmos DB specific options
+    const options = {
       useNewUrlParser: true,
       useUnifiedTopology: true,
       retryWrites: false,
+      ssl: true,
       tlsAllowInvalidCertificates: true,
-      serverSelectionTimeoutMS: 30000,
-      socketTimeoutMS: 45000,
-      connectTimeoutMS: 30000,
-      directConnection: true,
-      ssl: true,  
-      maxPoolSize: 100,
+      maxIdleTimeMS: 120000,
+      authMechanism: 'SCRAM-SHA-256',
+      dbName: 'labbooker-db',  // Specify database name
+      authSource: 'admin',
+      directConnection: true
+    };
+
+    // Clean up connection string
+    let uri = process.env.MONGODB_URI;
+    
+    await mongoose.connect(uri, options);
+    console.log('Connected to Cosmos DB:', mongoose.connection.db.databaseName);
+
+    // Add connection event handlers
+    mongoose.connection.on('connected', () => {
+      console.log('Mongoose connected to Cosmos DB');
     });
 
-    console.log('MongoDB Connected Successfully');
-
-    // Handle connection errors after initial connection
-    mongoose.connection.on('error', err => {
-      console.error('MongoDB connection error:', err);
+    mongoose.connection.on('error', (err) => {
+      console.error('Mongoose connection error:', err);
     });
 
     mongoose.connection.on('disconnected', () => {
-      console.log('MongoDB disconnected. Attempting to reconnect...');
+      console.log('Mongoose disconnected');
     });
 
   } catch (err) {
-    console.error('MongoDB connection error:', err);
+    console.error('Cosmos DB connection error:', err);
+    console.error('Error details:', err.message);
     process.exit(1);
   }
 };
-
-// Call connect before starting express
-connectDB().then(() => {
-  app.listen( () => {
-    console.log(`mongo Server running`);
-  });
-}).catch(err => {
-  console.error('Failed to connect to MongoDB:', err);
-  process.exit(1);
-});
 
 app.use((req, res, next) => {
   console.log(`Debug: Received request - ${req.method} ${req.path}`);
