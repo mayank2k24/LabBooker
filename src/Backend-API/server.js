@@ -39,7 +39,7 @@ app.use(logoutTimer);
 
 
 // Connect to MongoDB
-const IS_COSMOS = process.env.MONGO_URI.includes('cosmos.azure.com');
+const IS_COSMOS = process.env.MONGODB_URI.includes('cosmos.azure.com');
 const mongooseOptions = IS_COSMOS 
   ? {
       useNewUrlParser: true,
@@ -55,7 +55,7 @@ const mongooseOptions = IS_COSMOS
     };
 
 
-mongoose.connect(process.env.MONGO_URI, mongooseOptions)
+mongoose.connect(process.env.MONGODB_URI, mongooseOptions)
   .then(() => {
     console.log(`MongoDB Connected to ${IS_COSMOS ? 'Cosmos DB' : 'Local/Atlas MongoDB'}`);
   })
