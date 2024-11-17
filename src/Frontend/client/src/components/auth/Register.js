@@ -18,10 +18,16 @@ const Register = () => {
   const confirmPasswordRef = useRef(null);
   const [isLoading, setIsLoading] = useState(false);
   const [captchaValue, setCaptchaValue] = useState(null);
+  const captchaRef = useRef(null);
   const [captchaError, setCaptchaError] = useState('');
 
   const onChange = e => setFormData({ ...formData, [e.target.name]: e.target.value });
 
+
+  const handleCaptchaChange = (value) => {
+    setCaptchaValue(value);
+    setCaptchaError('');
+  };
 
   const onSubmit = async e => {
     e.preventDefault();
@@ -42,7 +48,7 @@ const Register = () => {
     }
   
     try {
-      const result = await register(name, email, passwordRef.current.value,confirmationToken,{captcha:captchaValue});
+      const result = await register(name, email, passwordRef.current.value,captchaValue);
 
       if (result.success) {
         setError('');
@@ -58,9 +64,7 @@ const Register = () => {
       setError(err.message || 'An error occurred during registration');
     } finally{
       setIsLoading(false);
-      if(window.grecaptcha){
-        window.grecaptcha.reset();
-      }
+      captchaRef.current.reset();
       setCaptchaValue(null);
     }
   };
@@ -106,10 +110,11 @@ const Register = () => {
         required
         className={styles.inputField}
       />
-      <ReCAPTCHA sitekey={process.env.REACT_APP_CAPTCHA_SITE_KEY} onChange={(value) => {
-        setCaptchaValue(value); 
-        setCaptchaError('');}
-        } />
+      <ReCAPTCHA 
+        ref={captchaRef}
+        sitekey={process.env.REACT_APP_CAPTCHA_SITE_KEY} 
+        onChange={handleCaptchaChange}
+      />
       <button type="submit" disabled={isLoading} className={styles.submitButton}>
         {isLoading ? 'Registering...' : 'Register'}
       </button>

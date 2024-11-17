@@ -13,7 +13,13 @@ const Login = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [captchaValue, setCaptchaValue] = useState(null);
+  const captchaRef = useRef(null);
   const [captchaError, setCaptchaError] = useState('');
+
+  const handleCaptchaChange = (value) => {
+    setCaptchaValue(value);
+    setCaptchaError('');
+  };
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -34,7 +40,9 @@ const Login = () => {
     }
     
     try {
-      const result = await login(email, password,{captcha:captchaValue});
+      const result = await login(email, password,captchaValue);
+      captchaRef.current.reset();
+      setCaptchaValue(null);
       if (result.success) {
         if (isAdmin) {
           navigate("/admin");
@@ -94,11 +102,9 @@ const Login = () => {
         </div>
         <div className={styles.recaptchaContainer}>
           <ReCAPTCHA
+            ref={captchaRef}
             sitekey={process.env.REACT_APP_CAPTCHA_SITE_KEY}
-            onChange={(value) => {
-              setCaptchaValue(value);
-              setCaptchaError('');
-            }}
+            onChange={handleCaptchaChange}
           />
           {captchaError && <p className={styles.errorMessage}>{captchaError}</p>}
         </div>
