@@ -277,7 +277,7 @@ router.post('/login',async (req, res) => {
   }
 
     // Create and send token
-    const token = await generateToken(user);
+    const token = generateToken(user);
     res.json({ success:true,token ,
       user:{
         id:user._id,
