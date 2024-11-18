@@ -47,6 +47,7 @@ mongoose
     useUnifiedTopology: true,
     serverSelectionTimeoutMS: 5000,
     socketTimeoutMS: 45000,
+    dbName: "LabBooker",
   })
   .then(() => console.log("MongoDB connected"))
   .catch((err) => {
