@@ -38,46 +38,20 @@ app.use(bodyParser.json());
 app.use(logoutTimer);
 
 
-async function connectDB() {
-  try {
-    if (!process.env.MONGODB_URI) {
-      throw new Error('MONGODB_URI is not defined');
-    }
+axios.defaults.headers.post["Content-Type"] = "application/json";
 
-    // Cosmos DB specific options
-    const options = {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-      dbName: 'LabBooker',
-      retryWrites: true,
-      w: 'majority'
-    };
-
-    // Clean up connection string
-    let uri = process.env.MONGODB_URI;
-    
-    await mongoose.connect(uri, options);
-    console.log('Connected to Cosmos DB:', mongoose.connection.db.databaseName);
-
-    // Add connection event handlers
-    mongoose.connection.on('connected', () => {
-      console.log('Mongoose connected to Cosmos DB');
-    });
-
-    mongoose.connection.on('error', (err) => {
-      console.error('Mongoose connection error:', err);
-    });
-
-    mongoose.connection.on('disconnected', () => {
-      console.log('Mongoose disconnected');
-    });
-
-  } catch (err) {
-    console.error('Cosmos DB connection error:', err);
-    console.error('Error details:', err.message);
-    process.exit(1);
-  }
-};
+// Connect to MongoDB
+mongoose
+  .connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+  })
+  .then(() => console.log("MongoDB connected"))
+  .catch((err) => {
+    console.log(err);
+  });
 
 app.use((req, res, next) => {
   console.log(`Debug: Received request - ${req.method} ${req.path}`);
