@@ -17,7 +17,7 @@ const AdminDashboard = () => {
   const { user, loading } = useContext(AuthContext);
   const { setAlert } = useContext(AlertContext);
   const [error, setError] = useState(null);
-  const [IsLoading, setIsLoading] = useState(false);
+  const [IsLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     if (!loading && user && user.isAdmin) {
@@ -29,13 +29,15 @@ const AdminDashboard = () => {
 
   const fetchAdminStats = async () => {
     try {
-      loading(true);
-      const response = await axios.get('/api/bookings/admin/stats', {
+      setIsLoading(true);
+      const response = await axios.get('/api/admin/stats', {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
       setStats(response.data);
     } catch (err) {
-      setError(err.message || 'Failed to fetch admin statistics');
+      console.error('Admin stats error:', err);
+    setError(err.message || 'Failed to fetch admin statistics');
+    setAlert('Failed to fetch admin statistics', 'error');
     } finally {
       setIsLoading(false);
     }
@@ -53,16 +55,23 @@ const AdminDashboard = () => {
 
   const fetchBookings = async () => {
     try {
-      const res = await axios.get('/api/admin/bookings');
-      setBookings(res.data);
-    } catch (error) {
-      console.error('Error fetching bookings:', error);
-      setAlert('Failed to fetch bookings', 'danger');
+      setIsLoading(true);
+      const response = await axios.get('/api/admin/bookings');
+      setBookings(response.data || []); // Ensure we always have an array
+    } catch (err) {
+      console.error('Error fetching bookings:', err);
+      setError('Failed to fetch bookings');
+      setBookings([]); // Set empty array on error
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  if (loading) {
+  if (IsLoading) {
     return <div>Loading...</div>;
+  }
+  if (error) {
+    return <div>Error:{error}</div>;
   }
 
   if (!user || !user.isAdmin) {

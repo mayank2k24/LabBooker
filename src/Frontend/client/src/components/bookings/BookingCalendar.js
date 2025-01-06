@@ -1,4 +1,5 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
 import { Calendar, momentLocalizer } from 'react-big-calendar';
 import moment from 'moment';
 import 'react-big-calendar/lib/css/react-big-calendar.css';
@@ -6,48 +7,47 @@ import { useBookings } from '../../context/BookingContext';
 import { useAlert } from '../../context/AlertContext';
 import { useNavigate } from 'react-router-dom';
 import { formatSystemName } from '../utils/Validation';
+import styles from './BookingCalendar.module.css';
 
 const localizer = momentLocalizer(moment);
 
 const BookingCalendar = () => {
-  const { allBookings, fetchAllBookings } = useBookings();
+  const { bookings, fetchAllBookings, setSelectedBooking } = useBookings();
   const { setAlert } = useAlert();
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchAllBookings();
   }, [fetchAllBookings]);
 
-  const events = allBookings.map(booking => ({
-    id: booking._id,
-    title: `${formatSystemName(booking.resource)}`, 
-    start: new Date(booking.start), 
-    end: new Date(booking.end),
-  }));
-
   const EventComponent = ({ event }) => (
-    <div>
+    <div className={styles.eventContainer}>
       <strong>{event.title}</strong>
-      <button onClick={() => handleEditBooking(event)}>Edit</button>
+      <button 
+        onClick={(e) => {
+          e.stopPropagation();
+          handleEditBooking(event);
+        }}
+        className={styles.editButton}
+      >
+        Edit
+      </button>
     </div>
   );
 
   const handleEditBooking = (event) => {
-    // Implement edit functionality here
-    console.log('Editing booking:', event);
-    setAlert('Editing booking...', 'info');
-    // You might want to navigate to an edit page or open a modal
-    // navigate(`/edit-booking/${event.id}`);
-    // Find the original booking object
-    const originalBooking = allBookings.find(booking => booking._id === event.id);
-    
-    if (originalBooking) {
+    const booking = bookings.find(b => b._id === event.id);
+    if (booking) {
+      setSelectedBooking(booking);
+      setAlert('Editing booking...', 'info');
       navigate('/edit-booking', { 
         state: { 
-          bookingId: originalBooking._id,
-          resource: originalBooking.resource,
-          start: originalBooking.start,
-          end: originalBooking.end
+          bookingId: booking._id,
+          resourceId: booking.resourceId,
+          start: booking.start,
+          end: booking.end
         } 
       });
     } else {
@@ -55,44 +55,59 @@ const BookingCalendar = () => {
     }
   };
 
+
   const handleSelectSlot = (slotInfo) => {
-    // Implement new booking functionality here
-    console.log('Creating new booking:', slotInfo);
-    setAlert('Creating new booking...', 'info'); 
-    const selectedResource = getSelectedResource();
-  
+    const now = moment();
+    const selectedStart = moment(slotInfo.start);
+
+    if (selectedStart.isBefore(now)) {
+      setAlert('Cannot create bookings in the past', 'error');
+      return;
+    }
+
+    setAlert('Creating new booking...', 'info');
     navigate('/bookings', { 
       state: { 
         startTime: slotInfo.start, 
         endTime: slotInfo.end,
-        resource: selectedResource // Add the resource here
+        resourceId: ''
       } 
     });
   };
 
-  const getSelectedResource = () => {
-    // Get the selected resource from the calendar view
-    const selectedView = this.calendar.current.getView();
-    if (selectedView && selectedView.resource) {
-      return selectedView.resource.title;
-    }
-    // If no resource is selected, return a default value
-    return 'Default Resource';
+  const eventStyleGetter = (event) => {
+    const isActive = moment(event.start).isSameOrBefore(moment()) && 
+                    moment(event.end).isAfter(moment());
+    return {
+      className: isActive ? styles.activeEvent : styles.normalEvent
+    };
   };
 
   return (
-    <div style={{ height: '500px' }}>
+    <div className={styles.calendarWrapper}>
       <Calendar
         localizer={localizer}
-        events={events}
+        events={(bookings || []).map(booking => ({
+          id: booking._id,
+          title: formatSystemName(booking.resourceId) || 'Unknown System',
+          start: new Date(booking.start),
+          end: new Date(booking.end),
+        }))}
         startAccessor="start"
         endAccessor="end"
-        style={{ height: '100%' }}
+        onSelectEvent={handleEditBooking}
+        onSelectSlot={handleSelectSlot}
+        selectable={true}
+        eventPropGetter={eventStyleGetter}
         components={{
           event: EventComponent
         }}
-        onSelectSlot={handleSelectSlot}
-        selectable={true}
+        views={['month', 'week', 'day']}
+        defaultView='week'
+        min={moment().set('hour', 8).toDate()}
+        max={moment().set('hour', 20).toDate()}
+        step={120}
+        timeslots={1}
       />
     </div>
   );

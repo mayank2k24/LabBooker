@@ -1,5 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useCallback, useEffect, useContext } from 'react';
 import { format } from 'date-fns';
 import { toast } from 'react-toastify';
 import { useBookings } from '../../context/BookingContext';
@@ -8,6 +7,7 @@ import { Layouts } from './Layouts';
 import CalendarView from './CalendarView';
 import Legend from './Legend';
 import LabLayout from '../layout/LabLayout';
+import { AuthContext } from '../../context/AuthContext';
 
 const VisualBooking = () => {
   const [selectedLab, setSelectedLab] = useState(Object.keys(Layouts)[0]);
@@ -18,40 +18,63 @@ const VisualBooking = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedSeat, setSelectedSeat] = useState(null);
+  const {user} = useContext(AuthContext);
+  const {createBooking,fetchBookingsByDate} = useBookings();
 
-  const { addBooking, fetchAllBookings } = useBookings();
+  const updateSeatsStatus = useCallback((bookingsData = []) => {
+    if (!Layouts[selectedLab]?.seatArrangement) {
+      console.error('Invalid lab layout:', selectedLab);
+      return;
+    }
+
+    const updatedSeats = Layouts[selectedLab].seatArrangement
+      .flat()
+      .filter(Boolean)
+      .map(seatNumber => ({
+        id: `${selectedLab}-${seatNumber}`,
+        number: seatNumber,
+        status: bookingsData.some(booking => 
+          booking.resourceId === `${selectedLab}-${seatNumber}` &&
+          new Date(booking.start) <= new Date() &&
+          new Date(booking.end) >= new Date()
+        ) ? 'booked' : 'available'
+      }));
+    setSeats(updatedSeats);
+  }, [selectedLab]);
 
   const fetchBookings = useCallback(async () => {
+    if (!selectedLab || loading) return;
+
+    const cacheKey = `${selectedLab}-${format(bookingDate, 'yyyy-MM-dd')}`;
+    const cached = sessionStorage.getItem(cacheKey);
+    
+    if (cached) {
+      updateSeatsStatus(JSON.parse(cached));
+      return;
+    }
+    
     setLoading(true);
     setError(null);
     try {
       const formattedDate = format(bookingDate, 'yyyy-MM-dd');
-      const response = await axios.get(`/api/bookings/${selectedLab}/${formattedDate}`);
-      updateSeatsStatus(response.data);
+      const bookingsData = await fetchBookingsByDate(selectedLab, formattedDate);
+      sessionStorage.setItem(cacheKey, JSON.stringify(bookingsData));
+      updateSeatsStatus(bookingsData);
     } catch (err) {
+      console.error('Fetch error:', err);
       setError('Failed to fetch bookings');
       toast.error('Failed to fetch bookings');
     } finally {
       setLoading(false);
     }
-  }, [selectedLab, bookingDate]);
+  }, [selectedLab, bookingDate, fetchBookingsByDate, updateSeatsStatus,loading]);
 
   useEffect(() => {
-    fetchBookings();
-  }, [fetchBookings]);
-
-  const updateSeatsStatus = (bookings) => {
-    const updatedSeats = Layouts[selectedLab].seatArrangement.flat().filter(Boolean).map(seatNumber => ({
-      id: `${selectedLab}-${seatNumber}`,
-      number: seatNumber,
-      status: bookings.some(booking => 
-        booking.resourceId === `${selectedLab}-${seatNumber}` &&
-        new Date(booking.start) <= new Date() &&
-        new Date(booking.end) >= new Date()
-      ) ? 'booked' : 'available'
-    }));
-    setSeats(updatedSeats);
-  };
+    const debounceTimer=setTimeout(() => {
+      fetchBookings();
+    }, 1000);
+    return () => clearTimeout(debounceTimer);
+  }, [selectedLab, bookingDate]);
 
   const handleBooking = async () => {
     if (!selectedSeat || !startTime || !endTime) {
@@ -60,27 +83,42 @@ const VisualBooking = () => {
     }
 
     try {
-      const response = await axios.post('/api/bookings', {
+      const bookingData = {
         resourceId: `${selectedLab}-${selectedSeat}`,
         start: `${format(bookingDate, 'yyyy-MM-dd')}T${startTime}:00`,
-        end: `${format(bookingDate, 'yyyy-MM-dd')}T${endTime}:00`
-      });
-      
-      if (response.data && response.data._id) {
-        toast.success('Booking successful!');
-        addBooking(response.data);  // Add the new booking to shared state
-        fetchBookings(); 
-        setSelectedSeat(null);
-        setStartTime('');
-        setEndTime('');
-      } else {
-        throw new Error('Booking failed');
+        end: `${format(bookingDate, 'yyyy-MM-dd')}T${endTime}:00`,
+        user: user._id
+      };
+
+      const existingBookings = await fetchBookingsByDate(selectedLab, format(bookingDate, 'yyyy-MM-dd'));
+      const hasConflict = existingBookings.some(booking => 
+        booking.resourceId === bookingData.resourceId &&
+        new Date(booking.start) <= new Date(bookingData.end) &&
+        new Date(booking.end) >= new Date(bookingData.start)
+      );
+  
+      if (hasConflict) {
+        toast.error('This time slot is already booked');
+        return;
       }
+  
+      console.log('Creating booking with data:', bookingData);
+      await createBooking(bookingData);
+      toast.success('Booking created successfully');
+      setSelectedSeat(null);
+      setStartTime('');
+      setEndTime('');
+      await fetchBookings();
     } catch (err) {
-      toast.error(err.response?.data?.error || 'Booking failed. Please try again.');
-      console.error('Booking error:', err);
+      console.error('Booking creation error:', err);
+    toast.error(err.response?.data?.message || 'Booking failed. Please try again.');
     }
   };
+
+  useEffect(() => {
+    fetchBookings();
+  }, [fetchBookings]);
+
 
   const handleDateChange = (date) => {
     setBookingDate(date);
@@ -102,7 +140,7 @@ const VisualBooking = () => {
       <h2>Lab Booking</h2>
       <div className={styles.bookingContainer}>
         <div className={styles.leftPanel}>
-          <CalendarView selectedDate={bookingDate} onDateChange={handleDateChange} />
+          <CalendarView selectedDate={bookingDate} onDateChange={handleDateChange} bookings={seats.filter(seat => seat.status === 'booked')} />
           <div className={styles.controlPanel}>
             <select value={selectedLab} onChange={handleLabChange}>
               {Object.keys(Layouts).map(labId => (

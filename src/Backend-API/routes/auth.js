@@ -146,10 +146,18 @@ router.get('/confirm-status/:userId', async (req, res) => {
 
 
 router.post('/forgot-password', async (req, res) => {
-  const { email } = req.body;
-  const normalizedEmail = normalizeEmail(email);  
   try {
+    const { email } = req.body;
+    const normalizedEmail = normalizeEmail(email);  
+    if (!email) {
+      return res.status(400).json({ 
+        success: false, 
+        msg: 'Email is required' 
+      });
+    }
     const user = await User.findOne({ email: normalizedEmail });
+
+
     if (!user) {
       return res.status(404).json({ msg: 'User not found' });
     }
@@ -181,28 +189,35 @@ router.post('/forgot-password', async (req, res) => {
 });
 
 router.put('/reset-password/:token', async (req, res) => {
-  console.log('Reset password route hit', {
-    params: req.params,
-    body: req.body,
-    url: req.url,
-    method: req.method
-  });
-  const { token } = req.params; 
-  const { password } = req.body;
-
   try {
+    const { token } = req.params; 
+  const { password } = req.body;
+    if (!token) {
+      return res.status(400).json({ 
+        success: false, 
+        msg: 'Reset token is required' 
+      });
+    }
+
+    if (!password) {
+      return res.status(400).json({ 
+        success: false, 
+        msg: 'New password is required' 
+      });
+    }
     console.log('Reset password route hit inside try block');
     const user = await User.findOne({
       resetPasswordToken: token,
       resetPasswordExpires: { $gt: Date.now() }
     });
 
-  console.log('User found:', user);
-console.log('Current time:', Date.now());
-
     if (!user) {
       console.log('No user found with token:', token);
-      return res.status(400).json({ msg: 'Password reset token is invalid or has expired' });
+      await User.cleanExpiredTokens();
+      return res.status(400).json({ 
+        success: false, 
+        msg: 'Password reset token is invalid or has expired' 
+      });
     }
 
     const salt = await bcrypt.genSalt(10);
@@ -212,10 +227,17 @@ console.log('Current time:', Date.now());
     await user.save();
 
     console.log('Password reset successful for user:', user.email);
-    res.json({ msg: 'Password has been reset successfully' });
+    res.json({ 
+      success: true, 
+      msg: 'Password has been reset successfully' 
+    });
+
   } catch (err) {
     console.error(err.message);
-    res.status(500).send('Server error');
+     res.status(500).json({ 
+      success: false, 
+      msg: 'Server error during password reset' 
+    });
   }
 });
 

@@ -2,16 +2,18 @@ import React, { useEffect, useState,useContext } from 'react';
 import { useBookings } from '../../context/BookingContext';
 import {AuthContext} from '../../context/AuthContext';
 import styles from './Dashboard.module.css';
+import Whiteboard from '../utils/Whiteboard';
 import axios from 'axios';
 
 const Dashboard = () => {
   const { allBookings, loading, error, fetchAllBookings } = useBookings();
   const {user} = useContext(AuthContext);
   const [setError] = useState(null);
-  const [dashboardData, setDashboardData] = useState({
+  const [stats, setStats] = useState({
+    allBookings:[],
     activeBookings:[],
     totalBookings: 0,
-    upcomingBookings: 0,
+    upcomingBookings: [],
     pastBookings: 0,
     mostBookedResource: 'N/A'
   });
@@ -30,38 +32,46 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
-    console.log('Bookings:', allBookings);
-    if (allBookings & allBookings.length > 0) {
+    const fetchStats = async () => {
+      try {
+        const response = await axios.get('/api/bookings/stats');
+        if (response.data) {
+          setStats(prevStats => ({
+            ...prevStats,
+            ...response.data
+          }));
+        }
+      } catch (err) {
+        console.error('Error fetching stats:', err);
+        setError('Failed to fetch stats');
+      }
+    };
+  
+    if (allBookings?.length > 0) {
       const now = new Date();
-      const active = allBookings.filter(booking => new Date(booking.start) <= now && new Date(booking.end) >= now);
-      const upcoming = allBookings.filter(booking => new Date(booking.start) > now);
-      const past = allBookings.filter(booking => new Date(booking.end) < now);
-      
-      const resourceCounts = allBookings.reduce((acc, booking) => {
-        acc[booking.resource] = (acc[booking.resource] || 0) + 1;
-        return acc;
-      }, {});
-
-      const mostBooked = Object.entries(resourceCounts).reduce((a, b) => a[1] > b[1] ? a : b, ['N/A', 0])[0];
-
-      setDashboardData({
+      const active = allBookings.filter(booking => 
+        new Date(booking.start) <= now && new Date(booking.end) >= now
+      );
+      setStats(prevStats => ({
+        ...prevStats,
         activeBookings: active,
-        totalBookings: allBookings.length,
-        upcomingBookings: upcoming.length,
-        pastBookings: past.length,
-        mostBookedResource: mostBooked
-      });
+        totalBookings: allBookings.length
+      }));
     }
+  
+    fetchStats();
   }, [allBookings]);
 
   useEffect(() => {
     const fetchDashboardData = async () => {
       try {
         setIsLoading(true);
-        const response = await axios.get('/api/bookings/stats', {
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        const response = await axios.get('/api/bookings/stats');
+        setStats(response.data || {
+          allBookings: Array.isArray(response.data.allBookings) ? response.data.allBookings : [],
+          activeBookings: Array.isArray(response.data.activeBookings) ? response.data.activeBookings : [],
+          upcomingBookings: Array.isArray(response.data.upcomingBookings) ? response.data.upcomingBookings : []
         });
-        setDashboardData(response.data);
       } catch (err) {
         setError(err.message || 'Failed to fetch dashboard data');
       } finally {
@@ -84,28 +94,28 @@ const Dashboard = () => {
       <div className={styles.statsContainer}>
         <div className={styles.statCard}>
           <h3>Total Bookings</h3>
-          <p>{dashboardData.totalBookings}</p>
+          <p>{stats.totalBookings}</p>
         </div>
         <div className={styles.statCard}>
           <h3>Upcoming Bookings</h3>
-          <p>{dashboardData.upcomingBookings}</p>
+          <p>{stats.upcomingBookings}</p>
         </div>
         <div className={styles.statCard}>
           <h3>Past Bookings</h3>
-          <p>{dashboardData.pastBookings}</p>
+          <p>{stats.pastBookings}</p>
         </div>
         <div className={styles.statCard}>
           <h3>Most Booked Resource</h3>
-          <p>{dashboardData.mostBookedResource}</p>
+          <p>{stats.mostBookedResource}</p>
         </div>
       </div>
       <div className={styles.activeBookingsSection}>
         <h2 className={styles.sectionTitle}>Active Bookings</h2>
         <div className={styles.bookingsList}>
-          {dashboardData.activeBookings.length === 0 ? (
+          {stats.activeBookings.length === 0 ? (
             <p className={styles.noBookings}>No active bookings at the moment</p>
           ) : (
-            dashboardData.activeBookings.map(booking => (
+            stats.activeBookings.map(booking => (
               <div key={booking._id} className={styles.bookingCard}>
                 <div className={styles.bookingInfo}>
                   <h3>Resource: {booking.resourceId}</h3>
@@ -118,6 +128,9 @@ const Dashboard = () => {
               </div>
             ))
           )}
+        </div>
+        <div className={styles.whiteboardSection}>
+          <Whiteboard />
         </div>
       </div>
     </div>

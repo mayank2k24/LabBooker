@@ -11,14 +11,10 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT;
 
-
-
-
 // Middleware
 const corsOptions = {
   origin: [
     'https://labbooker.mayankgroup.tech',
-    'https://gentle-mushroom-0ea6a940f.5.azurestaticapps.net',
     'http://localhost:3000'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -89,10 +85,49 @@ app.use((err, req, res, next) => {
 
 // Add security headers
 app.use((req, res, next) => {
-  res.setHeader('X-Content-Type-Options', 'nosniff');
   res.setHeader('X-Frame-Options', 'DENY');
   res.setHeader('X-XSS-Protection', '1; mode=block');
   next();
+});
+
+// Middleware to check token expiration
+app.use(async (req, res, next) => {
+  if (req.path === '/api/auth/login' || req.path === '/api/auth/register') {
+    return next();
+  }
+  try {
+    const token = req.header('Authorization')?.replace('Bearer ', '');
+    if (!token) {
+      return res.status(401).json({ message: 'No token provided' });
+    }
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    if (!decoded) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+
+    const lastActivity = new Date(decoded.lastActivity);
+    const now = new Date();
+    const timeDiff = (now - lastActivity) / 1000 / 60; 
+
+    if (timeDiff > 30) { 
+      return res.status(401).json({ message: 'Session expired' });
+    }
+
+    const newToken = jwt.sign(
+      { ...decoded, lastActivity: now },
+      process.env.JWT_SECRET,
+      { expiresIn: '2h' }
+    );
+      res.setHeader('New-Token', newToken);
+      req.user = decoded;
+    next();
+  } catch (error) {
+    if (!res.headersSent) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+    next(error);
+  }
 });
 
 app.use((req, res, next) => {

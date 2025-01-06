@@ -39,11 +39,25 @@ export default function Bookings() {
   const { setAlert } = useContext(AlertContext);
 
   useEffect(() => {
-    if (token) {
-      fetchAllBookings();
-      fetchBookingHistory();
-    }
-  }, [token, fetchAllBookings]);
+    const controller = new AbortController();
+  
+  if (token) {
+    const loadData = async () => {
+      try {
+        await fetchAllBookings();
+        await fetchBookingHistory();
+      } catch (err) {
+        if (!controller.signal.aborted) {
+          console.error('Error fetching data:', err);
+          setAlert('Failed to fetch bookings', 'error');
+        }
+      }
+    };
+    loadData();
+  }
+
+  return () => controller.abort();
+}, [token]);
 
   useEffect(() => {
     if (location.state) {
@@ -152,18 +166,18 @@ export default function Bookings() {
         return;
       }
       const bookingData = {
-        resource: formData.system, 
+        resourceId: formData.system, 
         start: formData.startTime.toISOString(),
         end: formData.endTime.toISOString(),
         user: user._id
       };
       console.log('Submitting booking data:', bookingData);
       const newBooking = await createBooking(bookingData);
-      setAllBookings(prevBookings => [...prevBookings, newBooking]);
       setAlert("Booking created successfully", "success");
       setFormData({ system: "", startTime: null, endTime: null });
       setShowUndoFooter(true);
       setUndoAction({ type: 'create', data: newBooking });
+      await fetchAllBookings();
       setTimeout(() => {
         navigate('/dashboard');
       }, 5000);

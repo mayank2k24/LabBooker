@@ -15,11 +15,14 @@ const ConflictResolution = () => {
     try {
       setLoading(true);
       const response = await axios.get('/api/admin/conflicts');
-      setConflicts(response.data);
+      setConflicts(Array.isArray(response.data) ? response.data : []);
       setLoading(false);
     } catch (err) {
       console.error('Error fetching conflicts:', err);
       setError('Failed to fetch conflicts. Please try again.');
+      setLoading(false);
+      setConflicts([]);
+    } finally {
       setLoading(false);
     }
   };
@@ -27,7 +30,6 @@ const ConflictResolution = () => {
   const handleResolve = async (conflictId, resolution) => {
     try {
       await axios.post(`/api/admin/resolve-conflict/${conflictId}`, { resolution });
-      // Remove the resolved conflict from the list
       setConflicts(conflicts.filter(conflict => conflict._id !== conflictId));
     } catch (err) {
       console.error('Error resolving conflict:', err);
@@ -58,7 +60,7 @@ const ConflictResolution = () => {
             {conflict.bookings.map(booking => (
               <li key={booking._id}>
                 User: {booking.user.name} - 
-                Resource: {booking.resource.name} - 
+                Resource: {booking.resourceId} - 
                 Time: {moment(booking.startTime).format('MMMM D, YYYY h:mm A')} to {moment(booking.endTime).format('MMMM D, YYYY h:mm A')}
               </li>
             ))}

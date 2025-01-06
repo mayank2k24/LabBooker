@@ -218,3 +218,12 @@
   border-radius: var(--radius-md);
   font-style: italic;
 }
+
+.whiteboardSection {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  margin-top: 20px;
+  height: calc(100vh - 120px);
+  overflow: hidden;
+}

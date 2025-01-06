@@ -11,11 +11,10 @@ router.use(verifyToken);
 const getActiveBookings = async (userId = null) => { // utility function
   const now = new Date();
   const query = {
-    start: { $lte: now },
     end: { $gte: now }
   };
   
-  if (userId) {
+  if (userId && mongoose.Types.ObjectId.isValid(userId)) {
     query.user = userId;
   }
   
@@ -30,13 +29,18 @@ router.get('/conflicts', async (req, res) => {
     const conflicts = await Conflict.find()
     .populate({
       path: 'bookings',
-      populate: { path: 'user', select: 'name email' }
-    })
-    .populate('resource', 'name')
-    .populate('users', 'email');
-  res.json(conflicts);
+      populate: [
+        { path: 'user', select: 'name email' },
+        { path: 'resource', select: 'name' }
+      ]
+    });
+  res.json({success:true,conflicts});
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Conflicts fetch error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error fetching conflicts' 
+    });
   }
 });
 
@@ -131,33 +135,65 @@ router.get('/users', async (req, res) => {
 // GET /api/admin/bookings
 router.get('/bookings', async (req, res) => {
   try {
-    const bookings = await Booking.find().populate('user', 'name email');
-    res.json(bookings);
+    const bookings = await Booking.find().populate('user', 'name email').sort({ start: -1 });;
+    res.json({ 
+      success: true, 
+      bookings: bookings.map(booking => ({
+        _id: booking._id,
+        resourceId: booking.resourceId || 'Unknown Resource',
+        user: {
+          name: booking.user?.name || 'Unknown User',
+          email: booking.user?.email
+        },
+        start: booking.start,
+        end: booking.end,
+        status: booking.status
+      }))
+    });
   } catch (error) {
-    console.error('Error fetching bookings:', error);
-    res.status(500).json({ message: 'Error fetching bookings' });
+    console.error('Bookings fetch error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error fetching bookings' 
+    });
   }
 });
 
 // GET /api/admin/stats
 router.get('/stats', async (req, res) => {
-  const now = new Date();
   try {
-    const activeBookings = await getActiveBookings(now);
-    const totalUsers = await User.countDocuments();
-    const pendingUsers = await User.countDocuments({ isConfirmed: true, isApproved: false });
-    const totalBookings = await Booking.countDocuments();
-    const activeConflicts = await Conflict.countDocuments();
+    const [activeBookings, totalUsers, pendingUsers, totalBookings, conflicts] = await Promise.all([
+      getActiveBookings(),
+      User.countDocuments(),
+      User.countDocuments({ isConfirmed: true, isApproved: 'pending' }),
+      Booking.countDocuments(),
+      Conflict.countDocuments()
+    ]);
 
     res.json({
+      success: true,
       totalUsers,
       pendingUsers,
       totalBookings,
-      activeConflicts
+      activeConflicts: conflicts,
+      activeBookings: activeBookings.map(booking => ({
+        _id: booking._id,
+        resourceId: booking.resourceId || 'Unknown Resource',
+        user: {
+          name: booking.user?.name || 'Unknown User',
+          email: booking.user?.email
+        },
+        start: booking.start,
+        end: booking.end,
+        status: booking.status
+      }))
     });
   } catch (error) {
-    console.error('Error fetching admin stats:', error);
-    res.status(500).json({ message: 'Error fetching admin statistics' });
+    console.error('Admin stats error:', error);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error fetching admin statistics',
+    });
   }
 });
 

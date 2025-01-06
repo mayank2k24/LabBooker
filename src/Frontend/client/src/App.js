@@ -1,4 +1,4 @@
-import React,{useEffect} from "react";
+import React, { useEffect } from "react";
 import {
   BrowserRouter as Router,
   Route,
@@ -27,15 +27,14 @@ import ForgotPassword from "./components/auth/ForgotPassword";
 import "./App.css";
 
 function App() {
-
   useEffect(() => {
     document.title = "LabBooker";
   }, []);
 
   return (
-    <BookingProvider>
-      <AuthProvider>
-        <Router>
+    <Router>
+      <BookingProvider>
+        <AuthProvider>
           <AlertProvider>
             <div className="App">
               <Navbar />
@@ -44,7 +43,7 @@ function App() {
                 {/* Public Routes */}
                 <Route path="/register" element={<Register />} />
                 <Route path="/login" element={<Login />} />
-                <Route path="/reset-password/:token" element={<ResetPassword />} />
+                <Route path="/reset-password/:token"element={<ResetPassword />}  />
                 <Route path="/forgot-password" element={<ForgotPassword />} />
 
                 {/* Protected Routes for Authenticated Users */}
@@ -68,9 +67,9 @@ function App() {
               </Routes>
             </div>
           </AlertProvider>
-        </Router>
-      </AuthProvider>
-    </BookingProvider>
+        </AuthProvider>
+      </BookingProvider>
+    </Router>
   );
 }
 

@@ -1,4 +1,5 @@
 import React, { createContext, useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 export const AuthContext = createContext();
@@ -9,6 +10,7 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
   const [error, setError] = useState(null);
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [isAdmin, setIsAdmin] = useState(false);
@@ -115,7 +117,6 @@ export const AuthProvider = ({ children }) => {
   }
   const resetPassword = async (resetToken, newPassword) => {
     try {
-      console.log('Attempting to reset password with token:', resetToken);
       const res = await axios.put(`/api/auth/reset-password/${resetToken}`, { password: newPassword });
       console.log('Reset password response:', res);
       return res.data;
@@ -139,6 +140,7 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(false);
     setIsAdmin(false);
     delete axios.defaults.headers.common['Authorization'];
+    navigate('/login');
   };
 
 

@@ -1,10 +1,23 @@
-
 .calendarContainer {
-    width: 300px;
-  }
-  
-  .reactCalendar {
-    width: 100%;
-    border: none;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
-  }
+  margin: 20px 0;
+}
+
+.reactCalendar {
+  width: 100%;
+  max-width: 400px;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.hasBookings {
+  background-color: #e3f2fd !important;
+  font-weight: bold;
+}
+
+.bookingCount {
+  font-size: 0.8em;
+  color: #1976d2;
+  margin-top: 4px;
+}

@@ -1,77 +1,81 @@
-import React, { createContext, useState, useContext, useCallback, useEffect } from 'react';
+import React, { createContext, useState, useContext, useCallback } from 'react';
 import axios from 'axios';
-import { AuthContext} from "./AuthContext";
+import { toast } from 'react-toastify';
 
 const BookingContext = createContext();
 
 export const BookingProvider = ({ children }) => {
   const [allBookings, setAllBookings] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [activeBookings, setActiveBookings] = useState([]);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { isAuthenticated, loading } = useContext(AuthContext) || {};
 
-  const fetchAllBookings = useCallback(async () => {
-    if(!isAuthenticated){
-      return;
-    }
-    setError(null);
-    setIsLoading(true);
+  const fetchBookingsByDate = async (labId, date) => {
     try {
-      const res = await axios.get('/api/bookings',{
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-      });
-      if (Array.isArray(res.data)) {
-        setAllBookings(res.data);
-        setIsLoading(false);
-      } else if (res.data && Array.isArray(res.data.bookings)) {
-        setAllBookings(res.data.bookings);
-        setIsLoading(false);
-      } else {
-        throw new Error('Unexpected data structure');
-      }
+      setLoading(true);
+      const response = await axios.get(`/api/bookings/${labId}/${date}`);
+      return response.data || [];
     } catch (err) {
-      if (error.response?.status === 401) {
-        console.log('Please login to view bookings');
-        setIsLoading(false);
-        return;
-      }
-      console.error("Failed to fetch bookings", err);
-      setError('Failed to fetch bookings');
+      toast.error('Failed to fetch bookings');
+      console.error('Fetch error:', err);
+      throw err;
     } finally {
-      setIsLoading(false);
+      setLoading(false);
+    }
+  };
+  const fetchAllBookings = useCallback(async () => {
+    try {
+      setLoading(true);
+      const response = await axios.get('/api/bookings');
+      setAllBookings(response.data || []);
+    } catch (err) {
+      console.error('Error fetching bookings:', err);
+      setError('Failed to fetch bookings');
+      setAllBookings([]);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
-  const addBooking = useCallback((newBooking) => {
-    setAllBookings(prevBookings => [...prevBookings, newBooking]);
+  const createBooking = useCallback(async (bookingData) => {
+    try {
+      const response = await axios.post('/api/bookings/create-booking', bookingData);
+      setAllBookings(prev => [...prev, response.data]);
+      return response.data;
+    } catch (err) {
+      console.error('Error creating booking:', err);
+      throw err;
+    }
   }, []);
 
-  const updateBooking = useCallback((updatedBooking) => {
-    setAllBookings(prevBookings => 
-      prevBookings.map(booking => 
-        booking._id === updatedBooking._id ? updatedBooking : booking
-      )
-    );
-  }, []);
-
-  const deleteBooking = useCallback((bookingId) => {
-    setAllBookings(prevBookings => 
-      prevBookings.filter(booking => booking._id !== bookingId)
-    );
-  }, []);
+  const updateBooking = async (bookingId, updatedData) => {
+    try {
+      setLoading(true);
+      const response = await axios.put(`/api/bookings/${bookingId}`, updatedData);
+      await fetchAllBookings();
+      toast.success('Booking updated successfully');
+      return response.data;
+    } catch (err) {
+      toast.error(err.response?.data?.msg || 'Failed to update booking');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
-    <BookingContext.Provider value={{ 
-      allBookings, 
-      setAllBookings, 
-      fetchAllBookings, 
-      addBooking,
+    <BookingContext.Provider value={{
+      allBookings,
+      activeBookings,
+      selectedBooking,
+      loading,
+      error,
+      setSelectedBooking,
+      fetchBookingsByDate,
+      createBooking,
       updateBooking,
-      deleteBooking,
-      isLoading,
-      error
+      fetchAllBookings
     }}>
       {children}
     </BookingContext.Provider>
@@ -79,5 +83,3 @@ export const BookingProvider = ({ children }) => {
 };
 
 export const useBookings = () => useContext(BookingContext);
-
-export default BookingProvider;
